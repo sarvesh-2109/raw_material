@@ -5,3 +5,6 @@ psycopg2-binary
 datetime
 wtforms
 dotenv
+python-dateutil
+sqlalchemy
+WTForms

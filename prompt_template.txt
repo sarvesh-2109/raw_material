@@ -1,6 +1,5 @@
 I am assigning you the role of a expert python developer.
-I will be directing you to develop a flask application with frontend in html css. 
-I want the flask to handle REST api and then direct them to the html file, so that when my friend will start making frontend, he will do it easily. But now for me, send jsonify request using REST api and then show it on the html page.
+I will be directing you to develop a flask application with frontend in HTML/CSS(bootstrap).
 The description will be as follows:
 
 The page will have input fields in different types:
@@ -23,14 +22,14 @@ The page will have input fields in different types:
 
 9. *Amount Without GST* (float): Obtain this value by multiplying Quantity by Basic Rate and display in the un-editable input box.
 
----GST SECTION BEGINS---
+---GST and Tax SECTION BEGINS---
 -> 3 options to choose i. None, ii. Intra-State iii. Inter-State
 
-10. *SGST* (float): Here the value will be fixed on the basis of the material chosen and it will be displayed in the un-editable input box.
+10. *SGST* (float): Here the value will be fixed on the basis of the material chosen and display in the un-editable input box.
 
-11. **CGST** (float): Here the value will be fixed on the basis of the material chosen and it will be displayed in the un-editable input box.
+11. **CGST** (float): Here the value will be fixed on the basis of the material chosen and display in the un-editable input box.
 
-12. *IGST* (float): Here the value will be fixed on the basis of the material chosen and it will be displayed in the un-editable input box.
+12. *IGST* (float): Here the value will be fixed on the basis of the material chosen and display in the un-editable input box.
 
 -> If None is selected then Set CGST, SGST and IGST to 0
 -> If Intra-State is selected then Only calculate CGST and SGST on the Amount Without GST entered for the specific material. IGST will be 0.
@@ -60,13 +59,13 @@ Hardener: CGST 9%, SGST 9%, IGST 18%
 -> add a option of selecting with GST or without GST.
 -> if without GST is selected set the GST to 0
 
-16. *Transportation Amount Without GST* (float): but this may have comma, so clean it before saving it
+15. *Transportation Amount Without GST* (float): but this may have comma, so clean it before saving it
 
-17. *CGST on Transportation Amount*: Calculate 2.5% on Transportation Amount Without GST <display in the un-editable input box>
+16. *CGST on Transportation Amount*: Calculate 2.5% on Transportation Amount Without GST and display in the un-editable input box.
 
-18. *SGST on Transportation Amount*: Calculate 2.5% on Transportation Amount Without GST <display in the un-editable input box>
+17. *SGST on Transportation Amount*: Calculate 2.5% on Transportation Amount Without GST and display in the un-editable input box.
 
-19. *TDS on Transportation Amount* (float): this may have comma so clean it before saving it. The user will enter a number that will be percentage i.e. if the user enters 1, then the user intends to say it is 1%. So, calculate (user input)% on Transportation Amount Without GST
+18. *TDS on Transportation Amount* (float): this may have comma so clean it before saving it. The user will enter a number that will be percentage i.e. if the user enters 1, then the user intends to say it is 1%. So, calculate (user input)% on Transportation Amount Without GST
 -> Sum the CGST on Transportation Amount Without GST, SGST on Transportation Amount Without GST, TDS on Calculate 2.5% on Transportation Amount Without GST and add them to 'Total GST Amount'
 
 ---Loading/Unloading SECTION BEGINS---
@@ -75,17 +74,17 @@ Hardener: CGST 9%, SGST 9%, IGST 18%
 -> add a option of selecting with GST or without GST.
 -> if without GST is selected set the GST to 0
 
-20. *CGST on Loading/Unloading Amount* (float): Calculate 9% on Loading/Unloading Amount <display in the un-editable input box>
+20. *CGST on Loading/Unloading Amount* (float): Calculate 9% on Loading/Unloading Amount and display in the un-editable input box.
 
-21. *SGST on Loading/Unloading Amount* (float): Calculate 9% on Loading/Unloading Amount <display in the un-editable input box>
+21. *SGST on Loading/Unloading Amount* (float): Calculate 9% on Loading/Unloading Amount and display in the un-editable input box.
 
-19. *TDS on Loading/Unloading Amount* (float): this may have comma so clean it before saving it. The user will enter a number that will be percentage i.e. if the user enters 1, then the user intends to say it is 1%. So, calculate (user input)% on Loading/Unloading Amount.
+22. *TDS on Loading/Unloading Amount* (float): this may have comma so clean it before saving it. The user will enter a number that will be percentage i.e. if the user enters 1, then the user intends to say it is 1%. So, calculate (user input)% on Loading/Unloading Amount.
 
 -> Sum the CGST on Loading/Unloading Amount, SGST on Loading/Unloading Amount, TDS on Loading/Unloading Amount and add them to 'Total GST Amount'
 
-22. *Total Amount Excluding GST* (float): Sum the following and add them in total [Amount Without GST, Transportation Amount Without GST, Loading/Unloading Amount]
+23. *Total Amount Excluding GST* (float): Sum the following and add them in total [Amount Without GST, Transportation Amount Without GST, Loading/Unloading Amount]
 
-23. *Total Amount Including GST* (Float): Sum the following and add them in total [Amount Without GST, Transportation Amount Without GST, Loading/Unloading Amount, Total GST Amount]
+24. *Total Amount Including GST* (Float): Sum the following and add them in total [Amount Without GST, Transportation Amount Without GST, Loading/Unloading Amount, Total GST Amount]
 
 After this I want to add this data in the Postgres DB in the following manner:
 Sr. No.
