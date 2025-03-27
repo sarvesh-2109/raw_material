@@ -1,0 +1,127 @@
+I am assigning you the role of a expert python developer.
+I will be directing you to develop a flask application with frontend in html css. 
+I want the flask to handle REST api and then direct them to the html file, so that when my friend will start making frontend, he will do it easily. But now for me, send jsonify request using REST api and then show it on the html page.
+The description will be as follows:
+
+The page will have input fields in different types:
+
+1. *Date* (DD/MM/YYYY) format. But when the date will be shown there, it show todays date, with the option of changing it
+
+2. *Vehicle number* (XXNNXXNNNN or XXNNXNNNN: X=alphabet and N=number. All of them should be in caps)
+
+3. *Supplier Name* (Text)
+
+4. *Challan/Bill number* (Text)
+
+5. *Material* (For this I want a drop-down toggle button built-in with search bar as there will be 14 Quantities in there) and those will be: i. Cement, ii. Lime Powder, iii. Gypsum, iv. Aluminium Powder, v. Soluble Oil, vi. Mould Oil, vii. DC Powder, viii. Pond Ash, ix. Biomass Briquette, x. Fly ash, xi. Coal, xii. Wood, xiii. Hardener, xiv. Mortar Bags. When the user should be able to real-time search the material in the drop down menu, i.e. if the users types 'p', other all options in the drop-down should disappear and only Pond Ash should remain, or if the user types 'c' then only cement and coal shall remain in the toggle and everything else should disappear.
+
+6. *Unit* (Str). Make drop-down toggle built-in with search-bar for unit too and add options like i. MT(metric Ton), ii. Kg, iii. BRASS, iv. TON, v. Ltr, vi. Bags. 
+
+7. *Quantity* (float). but this may have comma, so clean it before saving it. After selecting the unit, the quantity will be entered. 
+
+8. *Basic Rate* (float): but this may have comma, so clean it before saving it.
+
+9. *Amount Without GST* (float): Obtain this value by multiplying Quantity by Basic Rate and display in the un-editable input box.
+
+---GST SECTION BEGINS---
+-> 3 options to choose i. None, ii. Intra-State iii. Inter-State
+
+10. *SGST* (float): Here the value will be fixed on the basis of the material chosen and it will be displayed in the un-editable input box.
+
+11. **CGST** (float): Here the value will be fixed on the basis of the material chosen and it will be displayed in the un-editable input box.
+
+12. *IGST* (float): Here the value will be fixed on the basis of the material chosen and it will be displayed in the un-editable input box.
+
+-> If None is selected then Set CGST, SGST and IGST to 0
+-> If Intra-State is selected then Only calculate CGST and SGST on the Amount Without GST entered for the specific material. IGST will be 0.
+-> If Inter-State is selected then only calculate IGST on the Amount Without GST entered for the specific material. CGST and SGST will be 0.
+-> The rates for each material calculation are as follows:
+Cement: CGST 14%, SGST 14%, IGST 28%
+Lime Powder: CGST 2.5%, SGST 2.5%, IGST 5%
+Gypsum: CGST 2.5%, SGST 2.5%, IGST 5%
+Aluminium Powder: CGST 9%, SGST 9%, IGST 18%
+Soluble Oil: CGST 9%, SGST 9%, IGST 18%
+Mould Oil: CGST 9%, SGST 9%, IGST 18%
+DC Powder: CGST 9%, SGST 9%, IGST 18%
+Pond Ash: CGST 2.5%, SGST 2.5%, IGST 5%
+Biomass Briquette: CGST 2.5%, SGST 2.5%, IGST 5%
+Fly Ash: CGST 2.5%, SGST 2.5%, IGST 5%
+Coal: CGST 2.5%, SGST 2.5%, IGST 5%
+Wood: CGST 0%, SGST 0%, IGST 0%
+Hardener: CGST 9%, SGST 9%, IGST 18%
+
+13. *CESS* (float): Input field (the user will not enter the percent, they will directly enter the amount and you don't have to make any calculations for cess, directly take the value in further calculations)
+
+14. *TCS* (float): a toggle drop-down with search-bar and the options will be i. None, ii. 0.100.
+-> From point 10 to point 14 the calculate the values on 'Amount Without GST', add them and save it in a variable 'Total GST Amount'
+
+---Transport SECTION BEGINS---
+
+-> add a option of selecting with GST or without GST.
+-> if without GST is selected set the GST to 0
+
+16. *Transportation Amount Without GST* (float): but this may have comma, so clean it before saving it
+
+17. *CGST on Transportation Amount*: Calculate 2.5% on Transportation Amount Without GST <display in the un-editable input box>
+
+18. *SGST on Transportation Amount*: Calculate 2.5% on Transportation Amount Without GST <display in the un-editable input box>
+
+19. *TDS on Transportation Amount* (float): this may have comma so clean it before saving it. The user will enter a number that will be percentage i.e. if the user enters 1, then the user intends to say it is 1%. So, calculate (user input)% on Transportation Amount Without GST
+-> Sum the CGST on Transportation Amount Without GST, SGST on Transportation Amount Without GST, TDS on Calculate 2.5% on Transportation Amount Without GST and add them to 'Total GST Amount'
+
+---Loading/Unloading SECTION BEGINS---
+
+19. *Loading/Unloading Amount* (Float): but this may have comma, so clean it before saving it.
+-> add a option of selecting with GST or without GST.
+-> if without GST is selected set the GST to 0
+
+20. *CGST on Loading/Unloading Amount* (float): Calculate 9% on Loading/Unloading Amount <display in the un-editable input box>
+
+21. *SGST on Loading/Unloading Amount* (float): Calculate 9% on Loading/Unloading Amount <display in the un-editable input box>
+
+19. *TDS on Loading/Unloading Amount* (float): this may have comma so clean it before saving it. The user will enter a number that will be percentage i.e. if the user enters 1, then the user intends to say it is 1%. So, calculate (user input)% on Loading/Unloading Amount.
+
+-> Sum the CGST on Loading/Unloading Amount, SGST on Loading/Unloading Amount, TDS on Loading/Unloading Amount and add them to 'Total GST Amount'
+
+22. *Total Amount Excluding GST* (float): Sum the following and add them in total [Amount Without GST, Transportation Amount Without GST, Loading/Unloading Amount]
+
+23. *Total Amount Including GST* (Float): Sum the following and add them in total [Amount Without GST, Transportation Amount Without GST, Loading/Unloading Amount, Total GST Amount]
+
+After this I want to add this data in the Postgres DB in the following manner:
+Sr. No.
+Date
+Supplier Name
+Challan/Bill No.
+Material
+Unit
+Quantity
+Basic Rate
+Amount Without GST
+CGST 2.5%
+SGST 2.5%
+CGST 6%
+SGST 6%
+CGST 9%
+SGST 9%
+CGST 14%
+SGST 14%
+IGST 5%
+IGST 18%
+CESS
+TCS
+Transportation Charges
+Transportation Amount Without GST
+CGST on Transportation Amount
+SGST on Transportation Amount
+TDS on Transportation Amount
+Loading/Unloading Amount
+CGST on Loading/Unloading Amount
+SGST on Loading/Unloading Amount
+TDS on Loading/Unloading Amount
+Total Amount Excluding GST
+Total GST Amount
+Total Amount Including GST
+
+
+
+
