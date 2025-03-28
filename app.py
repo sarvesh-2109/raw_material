@@ -27,7 +27,7 @@ MATERIAL_RATES = {
     'Coal': {'cgst': 2.5, 'sgst': 2.5, 'igst': 5},
     'Wood': {'cgst': 0, 'sgst': 0, 'igst': 0},
     'Hardener': {'cgst': 9, 'sgst': 9, 'igst': 18},
-    'Mortar Bags': {'cgst': 0, 'sgst': 0, 'igst': 0}
+    'Mortar Bags': {'cgst': 9, 'sgst': 9, 'igst': 18}
 }
 
 MATERIALS = list(MATERIAL_RATES.keys())
