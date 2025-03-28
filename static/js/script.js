@@ -226,38 +226,57 @@ function calculateTotals() {
     const sgst = cleanNumberInput($('#sgst').val());
     const igst = cleanNumberInput($('#igst').val());
     const cess = cleanNumberInput($('#cess').val());
-    const tcs = cleanNumberInput($('#tcs').val()) || 0;
+    const tcs = cleanNumberInput($('#tcs').val());
     
     const transportAmount = cleanNumberInput($('#transport_amount').val());
     const transportCGST = cleanNumberInput($('#transport_cgst').val());
     const transportSGST = cleanNumberInput($('#transport_sgst').val());
-    const transportTDS = (transportAmount * (cleanNumberInput($('#transport_tds').val()) || 0)) / 100;
+    const transportTDSamount = (transportAmount * (cleanNumberInput($('#transport_tds').val()) || 0)) / 100;
+    const transportTDS = transportAmount - transportTDSamount;
     
     const loadingAmount = cleanNumberInput($('#loading_amount').val());
     const loadingCGST = cleanNumberInput($('#loading_cgst').val());
     const loadingSGST = cleanNumberInput($('#loading_sgst').val());
-    const loadingTDS = (loadingAmount * (cleanNumberInput($('#loading_tds').val()) || 0)) / 100;
+    const loadingTDSamount = (loadingAmount * (cleanNumberInput($('#loading_tds').val()) || 0)) / 100;
+    const loadingTDS = loadingAmount - loadingTDSamount;
+
+    const total_TDS_amount = transportTDSamount + loadingTDSamount;
+    const totalCess = cess;
+    const totalTcs = tcs;
+
     
-    const totalGSTAmount = cgst + sgst + igst + cess + tcs + 
-                          transportCGST + transportSGST + transportTDS + 
-                          loadingCGST + loadingSGST + loadingTDS;
+    const totalGSTAmount = cgst + sgst + igst + 
+                          transportCGST + transportSGST +  
+                          loadingCGST + loadingSGST; 
     
     const totalExcludingGST = amountWithoutGST + transportAmount + loadingAmount;
     const totalIncludingGST = totalExcludingGST + totalGSTAmount;
+
+    $('#transport_tds_amount').val(transportTDSamount.toFixed(2)).trigger('change');
+    $('#transport_amount_after_tds').val(transportTDS.toFixed(2)).trigger('change');
+    $('#transport_tds_amount').val(transportTDSamount.toFixed(2)).trigger('input');
+    $('#transport_amount_after_tds').val(transportTDS.toFixed(2)).trigger('input');
     
+    // Update loading TDS fields
+    $('#loading_tds_amount').val(loadingTDSamount.toFixed(2)).trigger('change');
+    $('#loading_amount_after_tds').val(loadingTDS.toFixed(2)).trigger('change');
+    $('#loading_tds_amount').val(loadingTDSamount.toFixed(2)).trigger('input');
+    $('#loading_amount_after_tds').val(loadingTDS.toFixed(2)).trigger('input');
+    
+    $('#total_TDS_amount').val(total_TDS_amount.toFixed(2)).trigger('change');
+    $('#totalCess').val(totalCess.toFixed(2)).trigger('change');
+    $('#totalTcs').val(totalTcs.toFixed(2)).trigger('change');
     $('#total_excluding_gst').val(totalExcludingGST.toFixed(2)).trigger('change');
     $('#total_gst_amount').val(totalGSTAmount.toFixed(2)).trigger('change');
     $('#total_including_gst').val(totalIncludingGST.toFixed(2)).trigger('change');
+    $('#total_TDS_amount').val(total_TDS_amount.toFixed(2)).trigger('input');
+    $('#totalCess').val(totalCess.toFixed(2)).trigger('input');
+    $('#totalTcs').val(totalTcs.toFixed(2)).trigger('input');
     $('#total_excluding_gst').val(totalExcludingGST.toFixed(2)).trigger('input');
     $('#total_gst_amount').val(totalGSTAmount.toFixed(2)).trigger('input');
     $('#total_including_gst').val(totalIncludingGST.toFixed(2)).trigger('input');
     
-    console.log('Totals Calculated:', {
-        totalExcludingGST,
-        totalGSTAmount,
-        totalIncludingGST
-    });
-}
+    }
 
     // Initialize everything
     setupEventHandlers();

@@ -103,14 +103,10 @@
             <label for="cess" class="form-label">CESS</label>
             <input type="text" class="form-control" id="cess" name="cess" value="0" required>
         </div>
-        
+
         <div class="col-md-3">
             <label for="tcs" class="form-label">TCS</label>
-            <select class="form-select select2" id="tcs" name="tcs">
-                {% for option in tcs_options %}
-                    <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-            </select>
+            <input type="text" class="form-control" id="tcs" name="tcs" value="0" required>
         </div>
         
         <!-- Transport Section -->
@@ -150,6 +146,16 @@
             <label for="transport_tds" class="form-label">TDS on Transport (%)</label>
             <input type="text" class="form-control" id="transport_tds" name="transport_tds" value="0" required>
         </div>
+
+        <div class="col-md-3">
+            <label for="transport_tds_amount" class="form-label">TDS Amount</label>
+            <input type="text" class="form-control" id="transport_tds_amount" name="transport_tds_amount" readonly>
+        </div>
+        
+        <div class="col-md-3">
+            <label for="transport_amount_after_tds" class="form-label">Amount After TDS</label>
+            <input type="text" class="form-control" id="transport_amount_after_tds" name="transport_amount_after_tds" readonly>
+        </div>
         
         <!-- Loading/Unloading Section -->
         <div class="col-12 mt-3">
@@ -188,13 +194,39 @@
             <label for="loading_tds" class="form-label">TDS on Loading (%)</label>
             <input type="text" class="form-control" id="loading_tds" name="loading_tds" value="0" required>
         </div>
+
+        <div class="col-md-3">
+            <label for="loading_tds_amount" class="form-label">TDS Amount</label>
+            <input type="text" class="form-control" id="loading_tds_amount" name="loading_tds_amount" readonly>
+        </div>
+        
+        <div class="col-md-3">
+            <label for="loading_amount_after_tds" class="form-label">Amount After TDS</label>
+            <input type="text" class="form-control" id="loading_amount_after_tds" name="loading_amount_after_tds" readonly>
+        </div>
         
         <!-- Totals Section -->
         <div class="col-12 mt-3">
             <h5>Totals</h5>
             <hr>
         </div>
-        
+
+        <div class="col-md-4">
+            <label for="total_TDS_amount" class="form-label">Total TDS</label>
+            <input type="text" class="form-control" id="total_TDS_amount" name="total_TDS_amount" readonly>
+        </div>
+
+        <div class="col-md-4">
+            <label for="totalCess" class="form-label">Total CESS</label>
+            <input type="text" class="form-control" id="totalCess" name="totalCess" readonly>
+        </div>
+
+        <div class="col-md-4">
+            <label for="totalTcs" class="form-label">Total TCS</label>
+            <input type="text" class="form-control" id="totalTcs" name="totalTcs" readonly>
+        </div>
+
+
         <div class="col-md-4">
             <label for="total_excluding_gst" class="form-label">Total Amount Excluding GST</label>
             <input type="text" class="form-control" id="total_excluding_gst" name="total_excluding_gst" readonly>

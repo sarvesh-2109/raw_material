@@ -28,16 +28,21 @@ class Invoice(db.Model):
     transport_amount = db.Column(db.Float, default=0)
     transport_cgst = db.Column(db.Float, default=0)
     transport_sgst = db.Column(db.Float, default=0)
-    transport_tds = db.Column(db.Float, default=0)
+    transport_tds_amount = db.Column(db.Float, default=0)
+    transport_tds_deducted = db.Column(db.Float, default=0)
     
     # Loading/Unloading fields
     loading_with_gst = db.Column(db.Boolean, default=True)
     loading_amount = db.Column(db.Float, default=0)
     loading_cgst = db.Column(db.Float, default=0)
     loading_sgst = db.Column(db.Float, default=0)
-    loading_tds = db.Column(db.Float, default=0)
+    loading_tds_amount = db.Column(db.Float, default=0)
+    loading_tds_deducted = db.Column(db.Float, default=0)
     
     # Totals
+    total_tds = db.Column(db.Float, nullable=False)
+    total_cess = db.Column(db.Float, nullable=False)
+    total_tcs = db.Column(db.Float, nullable=False)
     total_excluding_gst = db.Column(db.Float, nullable=False)
     total_gst_amount = db.Column(db.Float, nullable=False)
     total_including_gst = db.Column(db.Float, nullable=False)

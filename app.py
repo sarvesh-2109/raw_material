@@ -79,7 +79,7 @@ def index():
                 igst = (amount_without_gst * MATERIAL_RATES[material]['igst']) / 100
             
             cess = clean_number_input(request.form['cess'])
-            tcs = 0.0 if request.form['tcs'] == 'None' else float(request.form['tcs'])
+            tcs = clean_number_input(request.form['tcs'])
             
             # Transport Section
             transport_with_gst = request.form.get('transport_with_gst') == 'with'
@@ -92,7 +92,8 @@ def index():
             
             transport_tds_percent = clean_number_input(request.form['transport_tds'])
             if transport_tds_percent > 0:
-                transport_tds = (transport_amount * transport_tds_percent) / 100
+                transport_tds_amount = (transport_amount * transport_tds_percent) / 100
+                transport_tds = transport_amount - transport_tds_amount
             
             # Loading/Unloading Section
             loading_with_gst = request.form.get('loading_with_gst') == 'with'
@@ -105,12 +106,17 @@ def index():
             
             loading_tds_percent = clean_number_input(request.form['loading_tds'])
             if loading_tds_percent > 0:
-                loading_tds = (loading_amount * loading_tds_percent) / 100
+                loading_tds_amount = (loading_amount * loading_tds_percent) / 100
+                loading_tds = loading_amount - loading_tds_amount
             
             # Calculate totals
-            total_gst_amount = (cgst + sgst + igst + cess + tcs + 
-                                transport_cgst + transport_sgst + transport_tds + 
-                                loading_cgst + loading_sgst + loading_tds)
+            total_tds_amount = transport_tds_amount + loading_tds_amount
+            total_cess = cess
+            total_tcs = tcs
+            
+            total_gst_amount = (cgst + sgst + igst + 
+                                transport_cgst + transport_sgst + 
+                                loading_cgst + loading_sgst)
             
             total_excluding_gst = amount_without_gst + transport_amount + loading_amount
             total_including_gst = total_excluding_gst + total_gst_amount
@@ -136,12 +142,17 @@ def index():
                 transport_amount=transport_amount,
                 transport_cgst=transport_cgst,
                 transport_sgst=transport_sgst,
-                transport_tds=transport_tds,
+                transport_tds_amount=transport_tds_amount,
+                transport_tds_deducted=transport_tds,
                 loading_with_gst=loading_with_gst,
                 loading_amount=loading_amount,
                 loading_cgst=loading_cgst,
                 loading_sgst=loading_sgst,
-                loading_tds=loading_tds,
+                loading_tds_amount=loading_tds_amount,
+                loading_tds_deducted=loading_tds,
+                total_tds=total_tds_amount,
+                total_cess=total_cess,
+                total_tcs=total_tcs,
                 total_excluding_gst=total_excluding_gst,
                 total_gst_amount=total_gst_amount,
                 total_including_gst=total_including_gst
