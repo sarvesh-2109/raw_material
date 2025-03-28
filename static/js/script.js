@@ -22,19 +22,19 @@ $(document).ready(function() {
         'Coal': {cgst: 2.5, sgst: 2.5, igst: 5},
         'Wood': {cgst: 0, sgst: 0, igst: 0},
         'Hardener': {cgst: 9, sgst: 9, igst: 18},
-        'Mortar Bags': {cgst: 0, sgst: 0, igst: 0}
+        'Mortar Bags': {cgst: 9, sgst: 9, igst: 18}
     };
 
     // Set up event handlers for all input fields
     function setupEventHandlers() {
-        // Quantity and Basic Rate
-        $('#quantity, #basic_rate').on('input', function() {
+        // Quantity and Basic Rate - Update on ANY input change (keypress, paste, etc.)
+        $('#quantity, #basic_rate').on('input keyup', function() {
             calculateAmountWithoutGST();
             calculateGST();
             calculateTotals();
         });
 
-        // Material and GST Type
+        // Material and GST Type - Update immediately on change
         $('#material').on('change', function() {
             calculateGST();
             calculateTotals();
@@ -45,8 +45,8 @@ $(document).ready(function() {
             calculateTotals();
         });
 
-        // Transport Section
-        $('#transport_amount').on('input', function() {
+        // Transport Section - Update on input/keyup
+        $('#transport_amount').on('input keyup', function() {
             calculateTransportGST();
             calculateTotals();
         });
@@ -56,8 +56,8 @@ $(document).ready(function() {
             calculateTotals();
         });
 
-        // Loading Section
-        $('#loading_amount').on('input', function() {
+        // Loading Section - Update on input/keyup
+        $('#loading_amount').on('input keyup', function() {
             calculateLoadingGST();
             calculateTotals();
         });
@@ -67,31 +67,27 @@ $(document).ready(function() {
             calculateTotals();
         });
 
-        // Other fields
-        $('#cess, #tcs, #transport_tds, #loading_tds').on('input', calculateTotals);
+        // Other fields (CESS, TCS, TDS) - Update on input/keyup
+        $('#cess, #tcs, #transport_tds, #loading_tds').on('input keyup', calculateTotals);
 
-        // Vehicle number uppercase
+        // Vehicle number uppercase (unchanged)
         $('#vehicle_number').on('input', function() {
             this.value = this.value.toUpperCase();
             validateVehicleNumber();
         });
     }
 
-    // Form validation before submission
+    // Form validation before submission (unchanged)
     $('#invoiceForm').on('submit', function(e) {
         if (!validateForm()) {
             e.preventDefault();
-            // Scroll to first error
             $('html, body').animate({
                 scrollTop: $('.is-invalid').first().offset().top - 100
             }, 500);
         }
     });
 
-    // Initialize everything
-    setupEventHandlers();
-    calculateAll();
-});
+
 
 // VALIDATION FUNCTIONS
 function validateVehicleNumber() {
@@ -164,7 +160,7 @@ function calculateAmountWithoutGST() {
     const quantity = cleanNumberInput($('#quantity').val());
     const rate = cleanNumberInput($('#basic_rate').val());
     const amount = quantity * rate;
-    $('#amount_without_gst').val(amount.toFixed(2));
+    $('#amount_without_gst').val(amount.toFixed(2)).trigger('change'); // Force UI update
 }
 
 function calculateGST() {
@@ -175,34 +171,21 @@ function calculateGST() {
     let cgst = 0, sgst = 0, igst = 0;
     
     if (material && gstType && amountWithoutGST > 0) {
-        const rates = {
-            'Cement': {cgst: 14, sgst: 14, igst: 28},
-            'Lime Powder': {cgst: 2.5, sgst: 2.5, igst: 5},
-            'Gypsum': {cgst: 2.5, sgst: 2.5, igst: 5},
-            'Aluminium Powder': {cgst: 9, sgst: 9, igst: 18},
-            'Soluble Oil': {cgst: 9, sgst: 9, igst: 18},
-            'Mould Oil': {cgst: 9, sgst: 9, igst: 18},
-            'DC Powder': {cgst: 9, sgst: 9, igst: 18},
-            'Pond Ash': {cgst: 2.5, sgst: 2.5, igst: 5},
-            'Biomass Briquette': {cgst: 2.5, sgst: 2.5, igst: 5},
-            'Fly Ash': {cgst: 2.5, sgst: 2.5, igst: 5},
-            'Coal': {cgst: 2.5, sgst: 2.5, igst: 5},
-            'Wood': {cgst: 0, sgst: 0, igst: 0},
-            'Hardener': {cgst: 9, sgst: 9, igst: 18},
-            'Mortar Bags': {cgst: 0, sgst: 0, igst: 0}
-        };
-        
-        if (gstType === 'Intra-State' && rates[material]) {
-            cgst = (amountWithoutGST * rates[material].cgst) / 100;
-            sgst = (amountWithoutGST * rates[material].sgst) / 100;
-        } else if (gstType === 'Inter-State' && rates[material]) {
-            igst = (amountWithoutGST * rates[material].igst) / 100;
+        if (gstType === 'Intra-State' && MATERIAL_RATES[material]) {
+            cgst = (amountWithoutGST * MATERIAL_RATES[material].cgst) / 100;
+            sgst = (amountWithoutGST * MATERIAL_RATES[material].sgst) / 100;
+        } else if (gstType === 'Inter-State' && MATERIAL_RATES[material]) {
+            igst = (amountWithoutGST * MATERIAL_RATES[material].igst) / 100;
         }
     }
     
-    $('#cgst').val(cgst.toFixed(2));
-    $('#sgst').val(sgst.toFixed(2));
-    $('#igst').val(igst.toFixed(2));
+    // Update values and force UI refresh
+    $('#cgst').val(cgst.toFixed(2)).trigger('input');
+    $('#sgst').val(sgst.toFixed(2)).trigger('input');
+    $('#igst').val(igst.toFixed(2)).trigger('input');
+    
+    // Debugging - log the values to console
+    console.log('GST Calculated:', {cgst, sgst, igst});
 }
 
 function calculateTransportGST() {
@@ -216,8 +199,9 @@ function calculateTransportGST() {
         transportSGST = (transportAmount * 2.5) / 100;
     }
     
-    $('#transport_cgst').val(transportCGST.toFixed(2));
-    $('#transport_sgst').val(transportSGST.toFixed(2));
+    $('#transport_cgst').val(transportCGST.toFixed(2)).trigger('input');
+    $('#transport_sgst').val(transportSGST.toFixed(2)).trigger('input');
+    console.log('Transport GST Calculated:', {transportCGST, transportSGST});
 }
 
 function calculateLoadingGST() {
@@ -231,8 +215,9 @@ function calculateLoadingGST() {
         loadingSGST = (loadingAmount * 9) / 100;
     }
     
-    $('#loading_cgst').val(loadingCGST.toFixed(2));
-    $('#loading_sgst').val(loadingSGST.toFixed(2));
+    $('#loading_cgst').val(loadingCGST.toFixed(2)).trigger('input');
+    $('#loading_sgst').val(loadingSGST.toFixed(2)).trigger('input');
+    console.log('Loading GST Calculated:', {loadingCGST, loadingSGST});
 }
 
 function calculateTotals() {
@@ -260,7 +245,21 @@ function calculateTotals() {
     const totalExcludingGST = amountWithoutGST + transportAmount + loadingAmount;
     const totalIncludingGST = totalExcludingGST + totalGSTAmount;
     
-    $('#total_excluding_gst').val(totalExcludingGST.toFixed(2));
-    $('#total_gst_amount').val(totalGSTAmount.toFixed(2));
-    $('#total_including_gst').val(totalIncludingGST.toFixed(2));
+    $('#total_excluding_gst').val(totalExcludingGST.toFixed(2)).trigger('change');
+    $('#total_gst_amount').val(totalGSTAmount.toFixed(2)).trigger('change');
+    $('#total_including_gst').val(totalIncludingGST.toFixed(2)).trigger('change');
+    $('#total_excluding_gst').val(totalExcludingGST.toFixed(2)).trigger('input');
+    $('#total_gst_amount').val(totalGSTAmount.toFixed(2)).trigger('input');
+    $('#total_including_gst').val(totalIncludingGST.toFixed(2)).trigger('input');
+    
+    console.log('Totals Calculated:', {
+        totalExcludingGST,
+        totalGSTAmount,
+        totalIncludingGST
+    });
 }
+
+    // Initialize everything
+    setupEventHandlers();
+    calculateAll();
+});
