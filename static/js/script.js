@@ -281,4 +281,75 @@ function calculateTotals() {
     // Initialize everything
     setupEventHandlers();
     calculateAll();
+
+    // When form is submitted
+    $('#invoiceForm').on('submit', function(e) {
+        e.preventDefault(); // Prevent default form submission
+        
+        // Collect all form data
+        const formData = {
+            date: $('#date').val(),
+            vehicle_number: $('#vehicle_number').val(),
+            supplier_name: $('#supplier_name').val(),
+            challan_bill_number: $('#challan_bill_number').val(),
+            material: $('#material').val(),
+            quantity: $('#quantity').val(),
+            unit: $('#unit').val(),
+            basic_rate: $('#basic_rate').val(),
+            amount_without_gst: $('#amount_without_gst').val(),
+            gst_type: $('input[name="gst_type"]:checked').val(),
+            cgst: $('#cgst').val(),
+            sgst: $('#sgst').val(),
+            igst: $('#igst').val(),
+            cess: $('#cess').val(),
+            tcs: $('#tcs').val(),
+            transport_amount: $('#transport_amount').val(),
+            transport_tds_amount: $('#transport_tds_amount').val(),
+            loading_amount: $('#loading_amount').val(),
+            loading_tds_amount: $('#loading_tds_amount').val(),
+            total_excluding_gst: $('#total_excluding_gst').val(),
+            total_gst_amount: $('#total_gst_amount').val(),
+            total_including_gst: $('#total_including_gst').val()
+        };
+
+        // Populate the preview modal
+        $('#preview-date').text(formData.date);
+        $('#preview-vehicle').text(formData.vehicle_number);
+        $('#preview-supplier').text(formData.supplier_name);
+        $('#preview-challan').text(formData.challan_bill_number);
+        $('#preview-material').text(formData.material);
+        $('#preview-quantity').text(formData.quantity);
+        $('#preview-unit').text(formData.unit);
+        $('#preview-rate').text(formData.basic_rate);
+        $('#preview-gst-type').text(formData.gst_type);
+        $('#preview-cgst').text(formData.cgst);
+        $('#preview-sgst').text(formData.sgst);
+        $('#preview-igst').text(formData.igst);
+        $('#preview-transport').text(formData.transport_amount);
+        $('#preview-transport-cgst').text($('#transport_cgst').val());
+        $('#preview-transport-sgst').text($('#transport_sgst').val());
+        $('#preview-transport-tds').text(formData.transport_tds_amount);
+        $('#preview-transport-after-tds').text($('#transport_amount_after_tds').val());
+        $('#preview-loading').text(formData.loading_amount);
+        $('#preview-loading-cgst').text($('#loading_cgst').val());
+        $('#preview-loading-sgst').text($('#loading_sgst').val());
+        $('#preview-loading-tds').text(formData.loading_tds_amount);
+        $('#preview-loading-after-tds').text($('#loading_amount_after_tds').val());
+        $('#preview-subtotal').text(formData.total_excluding_gst);
+        $('#preview-total-gst').text(formData.total_gst_amount);
+        $('#preview-total-tds').text($('#total_TDS_amount').val());
+        $('#preview-total-cess').text($('#totalCess').val());
+        $('#preview-total-tcs').text($('#totalTcs').val());
+        $('#preview-grand-total').text(formData.total_including_gst);
+
+        // Show the modal
+        $('#previewModal').modal('show');
+    });
+
+    // When confirm button is clicked
+    $('#confirmSubmit').on('click', function() {
+        // Submit the form for real
+        $('#invoiceForm').off('submit').submit();
+    });
+
 });

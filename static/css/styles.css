@@ -1,0 +1,268 @@
+/* General Styling */
+body.invoice-system {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.invoice-form-container {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-header {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.form-title {
+    color: #2c3e50;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.header-decoration {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #9b59b6);
+    border-radius: 2px;
+}
+
+/* Section Cards */
+.section-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #3498db;
+    transition: all 0.3s ease;
+}
+
+.section-card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.section-title {
+    margin: 0;
+    color: #3498db;
+    font-weight: 500;
+}
+
+.section-icon {
+    margin-left: auto;
+    color: #9b59b6;
+    font-size: 1.5rem;
+}
+
+/* Form Elements */
+.form-label {
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    color: #7f8c8d;
+}
+
+/* Radio Buttons */
+.gst-radio-group {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+
+.form-check-input:checked {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+/* Totals Section */
+.totals-section {
+    background-color: #f8f9fa;
+    border-left-color: #2ecc71;
+}
+
+.total-field {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.highlight-total {
+    background-color: #e8f4fc;
+    color: #2980b9;
+    font-weight: 700;
+}
+
+/* Buttons */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.submit-btn {
+    background-color: #3498db;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
+}
+
+.reset-btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.reset-btn:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Date Picker */
+.date-picker {
+    background-color: white;
+    cursor: pointer;
+}
+
+/* Select2 Customization */
+.select2-container--default .select2-selection--single {
+    height: 38px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .submit-btn, .reset-btn {
+        width: 100%;
+    }
+}
+
+/* Preview Modal Styling */
+#previewModal .modal-header {
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+#previewModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#previewModal .modal-body h6 {
+    color: #3498db;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+#previewModal .confirm-btn {
+    background-color: #2ecc71;
+    border: none;
+    padding: 8px 20px;
+    transition: all 0.3s;
+}
+
+#previewModal .confirm-btn:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+}
+
+#previewModal .edit-btn {
+    padding: 8px 20px;
+    transition: all 0.3s;
+}
+
+#previewModal .edit-btn:hover {
+    background-color: #e74c3c;
+    transform: translateY(-2px);
+}
+
+/* Highlight important numbers */
+#preview-grand-total {
+    font-weight: 700;
+    color: #27ae60;
+    font-size: 1.1em;
+}
+
+/* Enhance totals section */
+#previewModal .modal-body .bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #eee;
+}
+
+#previewModal .modal-body .rounded {
+    border-radius: 8px !important;
+}
+
+#previewModal .modal-body .mt-3 {
+    margin-top: 1.5rem !important;
+}
+
+#previewModal .modal-body p {
+    margin-bottom: 0.5rem;
+}
+
+#preview-total-tds, 
+#preview-total-cess, 
+#preview-total-tcs {
+    font-weight: 500;
+}
+
+/* Make the grand total stand out more */
+#preview-grand-total {
+    font-size: 1.3em;
+    color: #2ecc71;
+    font-weight: 700;
+}
