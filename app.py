@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from datetime import datetime
 from config import Config
 from models import Invoice
@@ -11,6 +12,7 @@ app.config.from_object(Config)
 
 # Initialize database
 init_db(app)
+migrate = Migrate(app, db)
 
 # Material GST rates
 MATERIAL_RATES = {
@@ -85,6 +87,7 @@ def index():
             transport_with_gst = request.form.get('transport_with_gst') == 'with'
             transport_amount = clean_number_input(request.form['transport_amount'])
             transport_cgst = transport_sgst = transport_tds = 0.0
+            transport_tds_amount = 0.0
             
             if transport_with_gst:
                 transport_cgst = (transport_amount * 2.5) / 100
@@ -99,6 +102,7 @@ def index():
             loading_with_gst = request.form.get('loading_with_gst') == 'with'
             loading_amount = clean_number_input(request.form['loading_amount'])
             loading_cgst = loading_sgst = loading_tds = 0.0
+            loading_tds_amount = 0.0
             
             if loading_with_gst:
                 loading_cgst = (loading_amount * 9) / 100
@@ -142,12 +146,14 @@ def index():
                 transport_amount=transport_amount,
                 transport_cgst=transport_cgst,
                 transport_sgst=transport_sgst,
+                transport_tds_percent=transport_tds_percent,
                 transport_tds_amount=transport_tds_amount,
                 transport_tds_deducted=transport_tds,
                 loading_with_gst=loading_with_gst,
                 loading_amount=loading_amount,
                 loading_cgst=loading_cgst,
                 loading_sgst=loading_sgst,
+                loading_tds_percent=loading_tds_percent,
                 loading_tds_amount=loading_tds_amount,
                 loading_tds_deducted=loading_tds,
                 total_tds=total_tds_amount,

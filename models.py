@@ -28,6 +28,7 @@ class Invoice(db.Model):
     transport_amount = db.Column(db.Float, default=0)
     transport_cgst = db.Column(db.Float, default=0)
     transport_sgst = db.Column(db.Float, default=0)
+    transport_tds_percent = db.Column(db.Float, default=0)
     transport_tds_amount = db.Column(db.Float, default=0)
     transport_tds_deducted = db.Column(db.Float, default=0)
     
@@ -36,6 +37,7 @@ class Invoice(db.Model):
     loading_amount = db.Column(db.Float, default=0)
     loading_cgst = db.Column(db.Float, default=0)
     loading_sgst = db.Column(db.Float, default=0)
+    loading_tds_percent = db.Column(db.Float, default=0)
     loading_tds_amount = db.Column(db.Float, default=0)
     loading_tds_deducted = db.Column(db.Float, default=0)
     
