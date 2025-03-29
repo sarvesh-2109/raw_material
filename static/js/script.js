@@ -261,7 +261,7 @@ function calculateTotals() {
                           loadingCGST + loadingSGST; 
     
     const totalExcludingGST = amountWithoutGST + transportAmount + loadingAmount;
-    const totalIncludingGST = totalExcludingGST + totalGSTAmount;
+    const grandTotal = totalExcludingGST + totalGSTAmount + totalCess + totalTcs;
 
     // Update TDS fields - show 0.00 when percentage is 0
     $('#transport_tds_amount').val(transportTDSamount.toFixed(2)).trigger('change');
@@ -275,7 +275,7 @@ function calculateTotals() {
     $('#totalTcs').val(totalTcs.toFixed(2)).trigger('change');
     $('#total_excluding_gst').val(totalExcludingGST.toFixed(2)).trigger('change');
     $('#total_gst_amount').val(totalGSTAmount.toFixed(2)).trigger('change');
-    $('#total_including_gst').val(totalIncludingGST.toFixed(2)).trigger('change');
+    $('#grandTotal').val(grandTotal.toFixed(2)).trigger('change');
 }
 
     // Initialize everything
@@ -309,7 +309,7 @@ function calculateTotals() {
             loading_tds_amount: $('#loading_tds_amount').val(),
             total_excluding_gst: $('#total_excluding_gst').val(),
             total_gst_amount: $('#total_gst_amount').val(),
-            total_including_gst: $('#total_including_gst').val()
+            grandTotal: $('#grandTotal').val()
         };
 
         // Populate the preview modal
@@ -340,7 +340,7 @@ function calculateTotals() {
         $('#preview-total-tds').text($('#total_TDS_amount').val());
         $('#preview-total-cess').text($('#totalCess').val());
         $('#preview-total-tcs').text($('#totalTcs').val());
-        $('#preview-grand-total').text(formData.total_including_gst);
+        $('#preview-grand-total').text(formData.grandTotal);
 
         // Show the modal
         $('#previewModal').modal('show');

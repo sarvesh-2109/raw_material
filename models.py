@@ -47,7 +47,7 @@ class Invoice(db.Model):
     total_tcs = db.Column(db.Float, nullable=False)
     total_excluding_gst = db.Column(db.Float, nullable=False)
     total_gst_amount = db.Column(db.Float, nullable=False)
-    total_including_gst = db.Column(db.Float, nullable=False)
+    grand_total = db.Column(db.Float, nullable=False)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

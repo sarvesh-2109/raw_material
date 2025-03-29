@@ -123,7 +123,7 @@ def index():
                                 loading_cgst + loading_sgst)
             
             total_excluding_gst = amount_without_gst + transport_amount + loading_amount
-            total_including_gst = total_excluding_gst + total_gst_amount
+            grand_total = total_excluding_gst + total_gst_amount + total_cess + total_tcs
             
             # Create new invoice
             new_invoice = Invoice(
@@ -161,7 +161,7 @@ def index():
                 total_tcs=total_tcs,
                 total_excluding_gst=total_excluding_gst,
                 total_gst_amount=total_gst_amount,
-                total_including_gst=total_including_gst
+                grand_total=grand_total
             )
             
             db.session.add(new_invoice)
