@@ -289,3 +289,32 @@ body.invoice-system {
     white-space: nowrap;
     vertical-align: middle;
 }
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.summary-card .card-body {
+    padding: 1.5rem;
+}
+
+.summary-card h2 {
+    font-size: 2.5rem;
+    margin-top: 0.5rem;
+}
+
+#deliveriesChart {
+    width: 100%;
+    height: 500px;
+}
+
+.date-picker {
+    background-color: white;
+}

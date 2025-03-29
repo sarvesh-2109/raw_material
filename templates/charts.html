@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Charts Dashboard</h2>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Back to Home
+        </a>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="dateFilterForm" class="row g-3">
+                <div class="col-md-4">
+                    <label for="fromDate" class="form-label">From Date</label>
+                    <input type="text" class="form-control date-picker" id="fromDate" name="fromDate" value="{{ from_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="toDate" class="form-label">To Date</label>
+                    <input type="text" class="form-control date-picker" id="toDate" name="toDate" value="{{ to_date }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Suppliers</h5>
+                    <h2 class="card-text">{{ total_suppliers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Purchases</h5>
+                    <h2 class="card-text">{{ total_purchases|format_currency }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deliveries by Suppliers Chart -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Deliveries by Suppliers</h5>
+            <div id="deliveriesChart"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize date pickers
+    $('#fromDate, #toDate').datepicker({ 
+        format: 'dd/mm/yyyy', 
+        autoclose: true
+    });
+
+    // Plot the chart
+    const deliveriesData = JSON.parse('{{ deliveries_data|tojson|safe }}');
+    const suppliers = deliveriesData.map(item => item.supplier_name);
+    const counts = deliveriesData.map(item => item.delivery_count);
+    const amounts = deliveriesData.map(item => item.total_amount);
+
+    const trace1 = {
+        x: suppliers,
+        y: counts,
+        name: 'Number of Deliveries',
+        type: 'bar'
+    };
+
+    const trace2 = {
+        x: suppliers,
+        y: amounts,
+        name: 'Total Amount (₹)',
+        type: 'bar',
+        yaxis: 'y2'
+    };
+
+    const layout = {
+        title: 'Deliveries by Suppliers',
+        xaxis: {title: 'Supplier Name'},
+        yaxis: {title: 'Number of Deliveries'},
+        yaxis2: {
+            title: 'Total Amount (₹)',
+            overlaying: 'y',
+            side: 'right'
+        },
+        barmode: 'group'
+    };
+
+    Plotly.newPlot('deliveriesChart', [trace1, trace2], layout);
+
+    // Handle date filter form submission
+    $('#dateFilterForm').on('submit', function(e) {
+        e.preventDefault();
+        const fromDate = $('#fromDate').val();
+        const toDate = $('#toDate').val();
+        window.location.href = `{{ url_for('charts_dashboard') }}?from_date=${fromDate}&to_date=${toDate}`;
+    });
+});
+</script>
+{% endblock %}
