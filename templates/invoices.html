@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Invoice Data</h2>
+        <a href="{{ url_for('export_invoices') }}" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Export to Excel
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Vehicle No</th>
+                    <th>Supplier</th>
+                    <th>Challan No</th>
+                    <th>Material</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>GST Type</th>
+                    <th>CGST</th>
+                    <th>SGST</th>
+                    <th>IGST</th>
+                    <th>Transport</th>
+                    <th>Loading</th>
+                    <th>Total TDS</th>
+                    <th>Grand Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.id }}</td>
+                    <td>{{ invoice.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ invoice.vehicle_number }}</td>
+                    <td>{{ invoice.supplier_name }}</td>
+                    <td>{{ invoice.challan_bill_number }}</td>
+                    <td>{{ invoice.material }}</td>
+                    <td>{{ invoice.quantity }} {{ invoice.unit }}</td>
+                    <td>{{ "%.2f"|format(invoice.basic_rate) }}</td>
+                    <td>{{ "%.2f"|format(invoice.amount_without_gst) }}</td>
+                    <td>{{ invoice.gst_type }}</td>
+                    <td>{{ "%.2f"|format(invoice.cgst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.sgst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.igst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.transport_amount) }}</td>
+                    <td>{{ "%.2f"|format(invoice.loading_amount) }}</td>
+                    <td>{{ "%.2f"|format(invoice.total_tds) }}</td>
+                    <td>{{ "%.2f"|format(invoice.grand_total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

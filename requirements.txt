@@ -9,3 +9,5 @@ dotenv
 python-dateutil
 sqlalchemy
 WTForms
+pandas
+xlsxwriter

@@ -5,6 +5,9 @@ from datetime import datetime
 from config import Config
 from models import Invoice
 from database import db, init_db
+from flask import send_file
+import pandas as pd
+from io import BytesIO
 import re
 
 app = Flask(__name__)
@@ -183,5 +186,74 @@ def index():
                          units=UNITS, 
                          tcs_options=TCS_OPTIONS)
 
+
+@app.route('/invoices')
+def view_invoices():
+    invoices = Invoice.query.order_by(Invoice.date.desc()).all()
+    return render_template('invoices.html', invoices=invoices)
+
+
+@app.route('/export_invoices')
+def export_invoices():
+    # Query all invoices
+    invoices = Invoice.query.all()
+    
+    # Convert to pandas DataFrame
+    data = []
+    for invoice in invoices:
+        invoice_dict = {
+            'ID': invoice.id,
+            'Date': invoice.date.strftime('%d/%m/%Y'),
+            'Vehicle Number': invoice.vehicle_number,
+            'Supplier Name': invoice.supplier_name,
+            'Challan/Bill Number': invoice.challan_bill_number,
+            'Material': invoice.material,
+            'Unit': invoice.unit,
+            'Quantity': invoice.quantity,
+            'Basic Rate': invoice.basic_rate,
+            'Amount Without GST': invoice.amount_without_gst,
+            'GST Type': invoice.gst_type,
+            'CGST': invoice.cgst,
+            'SGST': invoice.sgst,
+            'IGST': invoice.igst,
+            'CESS': invoice.cess,
+            'TCS': invoice.tcs,
+            'Transport Amount': invoice.transport_amount,
+            'Transport CGST': invoice.transport_cgst,
+            'Transport SGST': invoice.transport_sgst,
+            'Transport TDS %': invoice.transport_tds_percent,
+            'Transport TDS Amount': invoice.transport_tds_amount,
+            'Loading Amount': invoice.loading_amount,
+            'Loading CGST': invoice.loading_cgst,
+            'Loading SGST': invoice.loading_sgst,
+            'Loading TDS %': invoice.loading_tds_percent,
+            'Loading TDS Amount': invoice.loading_tds_amount,
+            'Total TDS': invoice.total_tds,
+            'Total CESS': invoice.total_cess,
+            'Total TCS': invoice.total_tcs,
+            'Total Excluding GST': invoice.total_excluding_gst,
+            'Total GST Amount': invoice.total_gst_amount,
+            'Grand Total': invoice.grand_total,
+            'Created At': invoice.created_at.strftime('%d/%m/%Y %H:%M:%S')
+        }
+        data.append(invoice_dict)
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, sheet_name='Invoices', index=False)
+    writer.close()
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='invoices_export.xlsx'
+    )
+    
+    
 if __name__ == '__main__':
     app.run(debug=True)

@@ -5,6 +5,9 @@
     <div class="form-header mb-4">
         <h2 class="form-title">Invoice Entry Form</h2>
         <div class="header-decoration"></div>
+        <a href="{{ url_for('view_invoices') }}" class="btn btn-info position-absolute top-0 end-0 mt-3 me-3">
+            <i class="fas fa-table me-2"></i>Preview Data
+        </a>
     </div>
     
     <form method="POST" id="invoiceForm" class="needs-validation" novalidate>
@@ -358,7 +361,7 @@
                     </div>
                     
                     <div class="col-md-4">
-                        <label for="grandTotal" class="form-label">Total Amount Including GST</label>
+                        <label for="grandTotal" class="form-label">Grand Total</label>
                         <div class="input-group">
                             <span class="input-group-text">₹</span>
                             <input type="text" class="form-control total-field highlight-total" id="grandTotal" name="grandTotal" readonly>
