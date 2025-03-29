@@ -3,9 +3,14 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Invoice Data</h2>
+        <div>   
+            <h2 class="d-inline-block">Invoice Data</h2>
+        </div>
         <a href="{{ url_for('export_invoices') }}" class="btn btn-success">
             <i class="fas fa-file-excel me-2"></i>Export to Excel
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+            <i class="fas fa-home me-2"></i>Back to Home
         </a>
     </div>
 
@@ -15,20 +20,39 @@
                 <tr>
                     <th>ID</th>
                     <th>Date</th>
-                    <th>Vehicle No</th>
-                    <th>Supplier</th>
-                    <th>Challan No</th>
+                    <th>Vehicle Number</th>
+                    <th>Supplier Name</th>
+                    <th>Challan/Bill No</th>
                     <th>Material</th>
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
+                    <th>Unit</th>
+                    <th>Quantity</th>
+                    <th>Basic Rate</th>
+                    <th>Amount Without GST</th>
                     <th>GST Type</th>
                     <th>CGST</th>
                     <th>SGST</th>
                     <th>IGST</th>
-                    <th>Transport</th>
-                    <th>Loading</th>
+                    <th>CESS</th>
+                    <th>TCS</th>
+                    <th>Transport With GST</th>
+                    <th>Transport Amount</th>
+                    <th>Transport CGST</th>
+                    <th>Transport SGST</th>
+                    <th>Transport TDS %</th>
+                    <th>Transport TDS Amount</th>
+                    <th>Transport After TDS</th>
+                    <th>Loading With GST</th>
+                    <th>Loading Amount</th>
+                    <th>Loading CGST</th>
+                    <th>Loading SGST</th>
+                    <th>Loading TDS %</th>
+                    <th>Loading TDS Amount</th>
+                    <th>Loading After TDS</th>
                     <th>Total TDS</th>
+                    <th>Total CESS</th>
+                    <th>Total TCS</th>
+                    <th>Total Excl. GST</th>
+                    <th>Total GST Amount</th>
                     <th>Grand Total</th>
                 </tr>
             </thead>
@@ -41,16 +65,35 @@
                     <td>{{ invoice.supplier_name }}</td>
                     <td>{{ invoice.challan_bill_number }}</td>
                     <td>{{ invoice.material }}</td>
-                    <td>{{ invoice.quantity }} {{ invoice.unit }}</td>
+                    <td>{{ invoice.unit }}</td>
+                    <td>{{ "%.2f"|format(invoice.quantity) }}</td>
                     <td>{{ "%.2f"|format(invoice.basic_rate) }}</td>
                     <td>{{ "%.2f"|format(invoice.amount_without_gst) }}</td>
                     <td>{{ invoice.gst_type }}</td>
                     <td>{{ "%.2f"|format(invoice.cgst) }}</td>
                     <td>{{ "%.2f"|format(invoice.sgst) }}</td>
                     <td>{{ "%.2f"|format(invoice.igst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.cess) }}</td>
+                    <td>{{ "%.2f"|format(invoice.tcs) }}</td>
+                    <td>{{ 'Yes' if invoice.transport_with_gst else 'No' }}</td>
                     <td>{{ "%.2f"|format(invoice.transport_amount) }}</td>
+                    <td>{{ "%.2f"|format(invoice.transport_cgst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.transport_sgst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.transport_tds_percent) }}</td>
+                    <td>{{ "%.2f"|format(invoice.transport_tds_amount) }}</td>
+                    <td>{{ "%.2f"|format(invoice.transport_tds_deducted) }}</td>
+                    <td>{{ 'Yes' if invoice.loading_with_gst else 'No' }}</td>
                     <td>{{ "%.2f"|format(invoice.loading_amount) }}</td>
+                    <td>{{ "%.2f"|format(invoice.loading_cgst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.loading_sgst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.loading_tds_percent) }}</td>
+                    <td>{{ "%.2f"|format(invoice.loading_tds_amount) }}</td>
+                    <td>{{ "%.2f"|format(invoice.loading_tds_deducted) }}</td>
                     <td>{{ "%.2f"|format(invoice.total_tds) }}</td>
+                    <td>{{ "%.2f"|format(invoice.total_cess) }}</td>
+                    <td>{{ "%.2f"|format(invoice.total_tcs) }}</td>
+                    <td>{{ "%.2f"|format(invoice.total_excluding_gst) }}</td>
+                    <td>{{ "%.2f"|format(invoice.total_gst_amount) }}</td>
                     <td>{{ "%.2f"|format(invoice.grand_total) }}</td>
                 </tr>
                 {% endfor %}
@@ -58,4 +101,34 @@
         </table>
     </div>
 </div>
+
+<style>
+    .table-responsive {
+        max-height: 80vh;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #343a40;
+        color: white;
+        z-index: 10;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .table td, .table th {
+        white-space: nowrap;
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
+    .table th {
+        min-width: 100px;
+    }
+</style>
 {% endblock %}

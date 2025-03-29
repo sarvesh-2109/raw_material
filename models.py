@@ -1,5 +1,8 @@
 from datetime import datetime
+from pytz import timezone
 from database import db
+
+IST = timezone('Asia/Kolkata')
 
 class Invoice(db.Model):
     __tablename__ = 'invoices'
@@ -49,7 +52,7 @@ class Invoice(db.Model):
     total_gst_amount = db.Column(db.Float, nullable=False)
     grand_total = db.Column(db.Float, nullable=False)
     
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(IST))
     
     def __repr__(self):
         return f'<Invoice {self.challan_bill_number}>'
