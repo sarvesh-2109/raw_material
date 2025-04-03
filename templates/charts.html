@@ -50,11 +50,11 @@
         </div>
     </div>
 
-    <!-- Deliveries by Suppliers Chart -->
+    <!-- Total Amount by Suppliers Chart -->
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Deliveries by Suppliers</h5>
-            <div id="deliveriesChart"></div>
+            <h5 class="card-title">Total Amount by Suppliers</h5>
+            <div id="amountsChart"></div>
         </div>
     </div>
 </div>
@@ -70,40 +70,49 @@ $(document).ready(function() {
         autoclose: true
     });
 
-    // Plot the chart
+    // Plot the chart - Only total amounts
     const deliveriesData = JSON.parse('{{ deliveries_data|tojson|safe }}');
     const suppliers = deliveriesData.map(item => item.supplier_name);
-    const counts = deliveriesData.map(item => item.delivery_count);
     const amounts = deliveriesData.map(item => item.total_amount);
 
-    const trace1 = {
-        x: suppliers,
-        y: counts,
-        name: 'Number of Deliveries',
-        type: 'bar'
-    };
+    // Sort data by amount (descending)
+    const sortedData = suppliers.map((supplier, index) => ({
+        supplier,
+        amount: amounts[index]
+    })).sort((a, b) => b.amount - a.amount);
 
-    const trace2 = {
-        x: suppliers,
-        y: amounts,
-        name: 'Total Amount (₹)',
+    const sortedSuppliers = sortedData.map(item => item.supplier);
+    const sortedAmounts = sortedData.map(item => item.amount);
+
+    const trace = {
+        x: sortedSuppliers,
+        y: sortedAmounts,
         type: 'bar',
-        yaxis: 'y2'
+        marker: {
+            color: 'rgba(55, 128, 191, 0.7)',
+            line: {
+                color: 'rgba(55, 128, 191, 1.0)',
+                width: 1
+            }
+        }
     };
 
     const layout = {
-        title: 'Deliveries by Suppliers',
-        xaxis: {title: 'Supplier Name'},
-        yaxis: {title: 'Number of Deliveries'},
-        yaxis2: {
-            title: 'Total Amount (₹)',
-            overlaying: 'y',
-            side: 'right'
+        title: 'Total Amount by Suppliers',
+        xaxis: {
+            title: 'Supplier Name',
+            tickangle: -45
         },
-        barmode: 'group'
+        yaxis: {
+            title: 'Total Amount (₹)',
+            tickformat: ',.2f'
+        },
+        margin: {
+            b: 100  // Increase bottom margin for long supplier names
+        }
     };
 
-    Plotly.newPlot('deliveriesChart', [trace1, trace2], layout);
+    Plotly.newPlot('amountsChart', [trace], layout);
 
     // Handle date filter form submission
     $('#dateFilterForm').on('submit', function(e) {
