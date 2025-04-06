@@ -104,16 +104,49 @@ function validateVehicleNumber() {
     }
 }
 
+// Vendor type toggle
+$('input[name="vendor_type"]').on('change', function() {
+    const isSupplier = $(this).val() === 'supplier';
+    
+    // Toggle sections
+    $('.supplier-section').toggle(isSupplier);
+    
+    // Reset and recalculate
+    if (!isSupplier) {
+        // Clear supplier-specific fields
+        $('#material').val('').trigger('change');
+        $('#unit').val('').trigger('change');
+        $('#quantity, #basic_rate, #amount_without_gst').val('0');
+        $('#gst_none').prop('checked', true);
+        $('#cgst, #sgst, #igst').val('0');
+        $('#cess, #tcs').val('0');
+        // Reset GST radio buttons
+        $('input[name="gst_type"]').prop('disabled', true);
+    } else {
+        $('input[name="gst_type"]').prop('disabled', false);
+    }
+    
+    calculateTotals();
+});
+
 function validateForm() {
     let isValid = true;
+    const isSupplier = $('input[name="vendor_type"]:checked').val() === 'supplier';
+    $('#preview-supplier-info').toggle(isSupplier);
     
-    // Validate all required fields
+    // Validate all required fields based on vendor type
     $('input[required], select[required]').each(function() {
-        if (!$(this).val()) {
+        const $el = $(this);
+        // Skip validation for supplier-specific fields if transporter
+        if (!isSupplier && $el.closest('.supplier-section').length) {
+            return;
+        }
+        
+        if (!$el.val() || $el.val() === '') {
             isValid = false;
-            $(this).addClass('is-invalid');
+            $el.addClass('is-invalid');
         } else {
-            $(this).removeClass('is-invalid');
+            $el.removeClass('is-invalid');
         }
     });
     
@@ -122,15 +155,28 @@ function validateForm() {
         isValid = false;
     }
     
-    // Validate quantity and rate are positive numbers
-    if (cleanNumberInput($('#quantity').val()) <= 0) {
-        $('#quantity').addClass('is-invalid');
-        isValid = false;
+    // Validate quantity and rate for suppliers only
+    if (isSupplier) {
+        if (cleanNumberInput($('#quantity').val()) <= 0) {
+            $('#quantity').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        if (cleanNumberInput($('#basic_rate').val()) <= 0) {
+            $('#basic_rate').addClass('is-invalid');
+            isValid = false;
+        }
     }
     
-    if (cleanNumberInput($('#basic_rate').val()) <= 0) {
-        $('#basic_rate').addClass('is-invalid');
-        isValid = false;
+    // Validate at least transport or loading amount is > 0 for transporters
+    if (!isSupplier) {
+        const transportAmt = cleanNumberInput($('#transport_amount').val());
+        const loadingAmt = cleanNumberInput($('#loading_amount').val());
+        
+        if (transportAmt <= 0 && loadingAmt <= 0) {
+            $('#transport_amount, #loading_amount').addClass('is-invalid');
+            isValid = false;
+        }
     }
     
     if (!isValid) {
@@ -285,10 +331,15 @@ function calculateTotals() {
     // When form is submitted
     $('#invoiceForm').on('submit', function(e) {
         e.preventDefault(); // Prevent default form submission
+
+        const isSupplier = $('input[name="vendor_type"]:checked').val() === 'supplier';
+
+
         
         // Collect all form data
         const formData = {
             date: $('#date').val(),
+            vendor_type: $('input[name="vendor_type"]:checked').val(),
             vehicle_number: $('#vehicle_number').val(),
             supplier_name: $('#supplier_name').val(),
             challan_bill_number: $('#challan_bill_number').val(),
@@ -314,6 +365,8 @@ function calculateTotals() {
 
         // Populate the preview modal
         $('#preview-date').text(formData.date);
+        $('#preview-vendor-type').text(formData.vendor_type);
+        $('#preview-supplier-info').toggle(isSupplier);
         $('#preview-vehicle').text(formData.vehicle_number);
         $('#preview-supplier').text(formData.supplier_name);
         $('#preview-challan').text(formData.challan_bill_number);

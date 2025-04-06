@@ -55,6 +55,7 @@
                     <th>Sr. No.</th>
                     <!-- <th>ID</th> -->
                     <th>Date</th>
+                    <th>Vendor Type</th>
                     <th>Vehicle Number</th>
                     <th>Supplier Name</th>
                     <th>Challan/Bill No</th>
@@ -98,6 +99,7 @@
                     <td>{{ loop.index }}</td>
                     <!-- <td>{{ invoice.id }}</td> -->
                     <td>{{ invoice.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ invoice.vendor_type }}</td>
                     <td>{{ invoice.vehicle_number }}</td>
                     <td>{{ invoice.supplier_name }}</td>
                     <td>{{ invoice.challan_bill_number }}</td>

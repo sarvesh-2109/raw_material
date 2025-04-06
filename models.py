@@ -8,6 +8,7 @@ class Invoice(db.Model):
     __tablename__ = 'invoices'
     
     id = db.Column(db.Integer, primary_key=True)
+    vendor_type = db.Column(db.String(20), nullable=False, default='supplier')
     date = db.Column(db.Date, nullable=False)
     vehicle_number = db.Column(db.String(20), nullable=False)
     supplier_name = db.Column(db.String(100), nullable=False)

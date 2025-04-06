@@ -57,6 +57,8 @@ def validate_vehicle_number(vehicle_no):
 def index():
     if request.method == 'POST':
         try:
+            vendor_type = request.form.get('vendor_type', 'supplier')
+            
             # Process form data
             date_str = request.form['date']
             date = datetime.strptime(date_str, '%d/%m/%Y').date()
@@ -68,25 +70,39 @@ def index():
             
             supplier_name = request.form['supplier_name']
             challan_bill_number = request.form['challan_bill_number']
-            material = request.form['material']
-            unit = request.form['unit']
             
-            quantity = clean_number_input(request.form['quantity'])
-            basic_rate = clean_number_input(request.form['basic_rate'])
-            amount_without_gst = quantity * basic_rate
+            if vendor_type == 'supplier':
+                # Process supplier fields
+                material = request.form['material']
+                unit = request.form['unit']
+                quantity = clean_number_input(request.form['quantity'])
+                basic_rate = clean_number_input(request.form['basic_rate'])
+                amount_without_gst = quantity * basic_rate
+                
+                # GST Section
+                gst_type = request.form['gst_type']
+                cgst = sgst = igst = 0.0
+                
+                if gst_type == 'Intra-State':
+                    cgst = (amount_without_gst * MATERIAL_RATES[material]['cgst']) / 100
+                    sgst = (amount_without_gst * MATERIAL_RATES[material]['sgst']) / 100
+                elif gst_type == 'Inter-State':
+                    igst = (amount_without_gst * MATERIAL_RATES[material]['igst']) / 100
+                    
+                cess = clean_number_input(request.form['cess'])
+                tcs = clean_number_input(request.form['tcs'])
+            else:  # transporter
+                material = ""
+                unit = ""
+                quantity = 0.0
+                basic_rate = 0.0
+                amount_without_gst = 0.0
+                gst_type = "None"
+                cgst = sgst = igst = 0.0
+                cess = 0.0
+                tcs = 0.0
             
-            # GST Section
-            gst_type = request.form['gst_type']
-            cgst = sgst = igst = 0.0
             
-            if gst_type == 'Intra-State':
-                cgst = (amount_without_gst * MATERIAL_RATES[material]['cgst']) / 100
-                sgst = (amount_without_gst * MATERIAL_RATES[material]['sgst']) / 100
-            elif gst_type == 'Inter-State':
-                igst = (amount_without_gst * MATERIAL_RATES[material]['igst']) / 100
-            
-            cess = clean_number_input(request.form['cess'])
-            tcs = clean_number_input(request.form['tcs'])
             
             # Transport Section
             transport_with_gst = request.form.get('transport_with_gst') == 'with'
@@ -133,6 +149,7 @@ def index():
             # Create new invoice
             new_invoice = Invoice(
                 date=date,
+                vendor_type=vendor_type,
                 vehicle_number=vehicle_number,
                 supplier_name=supplier_name,
                 challan_bill_number=challan_bill_number,
@@ -385,11 +402,7 @@ def charts_dashboard():
 @app.route('/edit_invoice/<int:invoice_id>', methods=['GET'])
 def edit_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
-    
-    # Convert date to the format used in the form
     date_str = invoice.date.strftime('%d/%m/%Y')
-    
-    # Render just the form part for the modal
     return render_template('edit_invoice.html', 
                          invoice=invoice,
                          date_str=date_str,
@@ -402,36 +415,48 @@ def update_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
     
     try:
-        # Process form data (similar to your index route)
-        date_str = request.form['date']
-        invoice.date = datetime.strptime(date_str, '%d/%m/%Y').date()
+        vendor_type = request.form.get('vendor_type', 'supplier')
+        invoice.vendor_type = vendor_type
         
+        # Process form data
+        invoice.date = datetime.strptime(request.form['date'], '%d/%m/%Y').date()
         invoice.vehicle_number = request.form['vehicle_number'].upper()
+        
         if not validate_vehicle_number(invoice.vehicle_number):
             flash('Invalid vehicle number format', 'error')
             return redirect(url_for('view_invoices'))
-        
+            
         invoice.supplier_name = request.form['supplier_name']
         invoice.challan_bill_number = request.form['challan_bill_number']
-        invoice.material = request.form['material']
-        invoice.unit = request.form['unit']
         
-        invoice.quantity = clean_number_input(request.form['quantity'])
-        invoice.basic_rate = clean_number_input(request.form['basic_rate'])
-        invoice.amount_without_gst = invoice.quantity * invoice.basic_rate
-        
-        # GST Section
-        invoice.gst_type = request.form['gst_type']
-        invoice.cgst = invoice.sgst = invoice.igst = 0.0
-        
-        if invoice.gst_type == 'Intra-State':
-            invoice.cgst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['cgst']) / 100
-            invoice.sgst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['sgst']) / 100
-        elif invoice.gst_type == 'Inter-State':
-            invoice.igst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['igst']) / 100
-        
-        invoice.cess = clean_number_input(request.form['cess'])
-        invoice.tcs = clean_number_input(request.form['tcs'])
+        if vendor_type == 'supplier':
+            invoice.material = request.form['material']
+            invoice.unit = request.form['unit']
+            invoice.quantity = clean_number_input(request.form['quantity'])
+            invoice.basic_rate = clean_number_input(request.form['basic_rate'])
+            invoice.amount_without_gst = invoice.quantity * invoice.basic_rate
+            
+            invoice.gst_type = request.form['gst_type']
+            invoice.cgst = invoice.sgst = invoice.igst = 0.0
+            
+            if invoice.gst_type == 'Intra-State':
+                invoice.cgst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['cgst']) / 100
+                invoice.sgst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['sgst']) / 100
+            elif invoice.gst_type == 'Inter-State':
+                invoice.igst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['igst']) / 100
+                
+            invoice.cess = clean_number_input(request.form['cess'])
+            invoice.tcs = clean_number_input(request.form['tcs'])
+        else:
+            invoice.material = ""
+            invoice.unit = ""
+            invoice.quantity = 0.0
+            invoice.basic_rate = 0.0
+            invoice.amount_without_gst = 0.0
+            invoice.gst_type = "None"
+            invoice.cgst = invoice.sgst = invoice.igst = 0.0
+            invoice.cess = 0.0
+            invoice.tcs = 0.0
         
         # Transport Section
         invoice.transport_with_gst = request.form.get('transport_with_gst') == 'with'

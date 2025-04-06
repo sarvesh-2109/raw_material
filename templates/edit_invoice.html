@@ -6,6 +6,31 @@
                 <h5 class="section-title">Basic Information</h5>
                 <i class="fas fa-info-circle section-icon"></i>
             </div>
+
+            <!-- Vendor Type Section -->
+            <div class="col-12 section-card">
+                <div class="section-header">
+                    <h5 class="section-title">Vendor Type</h5>
+                    <i class="fas fa-user-tag section-icon"></i>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Vendor Type</label>
+                        <div class="gst-radio-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="vendor_type" id="vendor_supplier" value="supplier" 
+                                    {% if invoice.vendor_type == 'supplier' %}checked{% endif %}>
+                                <label class="form-check-label" for="vendor_supplier">Supplier (with materials)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="vendor_type" id="vendor_transporter" value="transporter"
+                                    {% if invoice.vendor_type == 'transporter' %}checked{% endif %}>
+                                <label class="form-check-label" for="vendor_transporter">Transporter Only</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             <div class="row g-3">
                 <div class="col-md-3">
                     <label for="date" class="form-label">Date</label>
@@ -45,7 +70,7 @@
         </div>
         
         <!-- Material Information Section -->
-        <div class="col-12 section-card">
+        <div class="col-12 section-card supplier-section">
             <div class="section-header">
                 <h5 class="section-title">Material Information</h5>
                 <i class="fas fa-boxes section-icon"></i>
@@ -98,7 +123,7 @@
         </div>
         
         <!-- GST Section -->
-        <div class="col-12 section-card">
+        <div class="col-12 section-card supplier-section">
             <div class="section-header">
                 <h5 class="section-title">GST and Tax Details</h5>
                 <i class="fas fa-file-invoice-dollar section-icon"></i>
