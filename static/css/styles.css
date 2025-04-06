@@ -318,3 +318,11 @@ body.invoice-system {
 .date-picker {
     background-color: white;
 }
+
+.supplier-only {
+    display: block;
+}
+
+.transporter-selected .supplier-only {
+    display: none;
+}

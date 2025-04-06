@@ -107,11 +107,11 @@ function validateVehicleNumber() {
 // Vendor type toggle
 $('input[name="vendor_type"]').on('change', function() {
     const isSupplier = $(this).val() === 'supplier';
+    const $totalsSection = $('.totals-section');
     
-    // Toggle sections
     $('.supplier-section').toggle(isSupplier);
+    $totalsSection.toggleClass('transporter-selected', !isSupplier);
     
-    // Reset and recalculate
     if (!isSupplier) {
         // Clear supplier-specific fields
         $('#material').val('').trigger('change');
@@ -120,7 +120,7 @@ $('input[name="vendor_type"]').on('change', function() {
         $('#gst_none').prop('checked', true);
         $('#cgst, #sgst, #igst').val('0');
         $('#cess, #tcs').val('0');
-        // Reset GST radio buttons
+        $('#totalCess, #totalTcs').val('0');
         $('input[name="gst_type"]').prop('disabled', true);
     } else {
         $('input[name="gst_type"]').prop('disabled', false);
