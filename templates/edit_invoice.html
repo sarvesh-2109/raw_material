@@ -1,0 +1,334 @@
+<form method="POST" action="{{ url_for('update_invoice', invoice_id=invoice.id) }}" class="needs-validation" novalidate>
+    <div class="row g-4">
+        <!-- Basic Information Section -->
+        <div class="col-12 section-card">
+            <div class="section-header">
+                <h5 class="section-title">Basic Information</h5>
+                <i class="fas fa-info-circle section-icon"></i>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        <input type="text" class="form-control date-picker" id="date" name="date" value="{{ date_str }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="vehicle_number" class="form-label">Vehicle Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-truck"></i></span>
+                        <input type="text" class="form-control text-uppercase" id="vehicle_number" name="vehicle_number" 
+                               value="{{ invoice.vehicle_number }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="supplier_name" class="form-label">Supplier Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                        <input type="text" class="form-control" id="supplier_name" name="supplier_name" 
+                               value="{{ invoice.supplier_name }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="challan_bill_number" class="form-label">Challan/Bill Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-file-invoice"></i></span>
+                        <input type="text" class="form-control" id="challan_bill_number" name="challan_bill_number" 
+                               value="{{ invoice.challan_bill_number }}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Material Information Section -->
+        <div class="col-12 section-card">
+            <div class="section-header">
+                <h5 class="section-title">Material Information</h5>
+                <i class="fas fa-boxes section-icon"></i>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="material" class="form-label">Material</label>
+                    <select class="form-select select2" id="material" name="material" required>
+                        <option value="" disabled>Select Material</option>
+                        {% for material in materials %}
+                            <option value="{{ material }}" {% if material == invoice.material %}selected{% endif %}>{{ material }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="unit" class="form-label">Unit</label>
+                    <select class="form-select select2" id="unit" name="unit" required>
+                        <option value="" disabled>Select Unit</option>
+                        {% for unit in units %}
+                            <option value="{{ unit }}" {% if unit == invoice.unit %}selected{% endif %}>{{ unit }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="quantity" class="form-label">Quantity</label>
+                    <input type="text" class="form-control" id="quantity" name="quantity" 
+                           value="{{ invoice.quantity }}" required>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="basic_rate" class="form-label">Basic Rate</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="basic_rate" name="basic_rate" 
+                               value="{{ invoice.basic_rate }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="amount_without_gst" class="form-label">Amount Without GST</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="amount_without_gst" name="amount_without_gst" 
+                               value="{{ invoice.amount_without_gst }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GST Section -->
+        <div class="col-12 section-card">
+            <div class="section-header">
+                <h5 class="section-title">GST and Tax Details</h5>
+                <i class="fas fa-file-invoice-dollar section-icon"></i>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">GST Type</label>
+                    <div class="gst-radio-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gst_type" id="gst_none" value="None" 
+                                   {% if invoice.gst_type == 'None' %}checked{% endif %}>
+                            <label class="form-check-label" for="gst_none">None</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gst_type" id="gst_intra" value="Intra-State" 
+                                   {% if invoice.gst_type == 'Intra-State' %}checked{% endif %}>
+                            <label class="form-check-label" for="gst_intra">Intra-State</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gst_type" id="gst_inter" value="Inter-State" 
+                                   {% if invoice.gst_type == 'Inter-State' %}checked{% endif %}>
+                            <label class="form-check-label" for="gst_inter">Inter-State</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="cgst" class="form-label">CGST</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="cgst" name="cgst" 
+                               value="{{ invoice.cgst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="sgst" class="form-label">SGST</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="sgst" name="sgst" 
+                               value="{{ invoice.sgst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="igst" class="form-label">IGST</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="igst" name="igst" 
+                               value="{{ invoice.igst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="cess" class="form-label">CESS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="cess" name="cess" 
+                               value="{{ invoice.cess }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="tcs" class="form-label">TCS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="tcs" name="tcs" 
+                               value="{{ invoice.tcs }}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Transport Section -->
+        <div class="col-12 section-card">
+            <div class="section-header">
+                <h5 class="section-title">Transport Details</h5>
+                <i class="fas fa-truck-moving section-icon"></i>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Transport GST</label>
+                    <div class="gst-radio-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="transport_with_gst" id="transport_with" value="with" 
+                                   {% if invoice.transport_with_gst %}checked{% endif %}>
+                            <label class="form-check-label" for="transport_with">With GST</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="transport_with_gst" id="transport_without" value="without" 
+                                   {% if not invoice.transport_with_gst %}checked{% endif %}>
+                            <label class="form-check-label" for="transport_without">Without GST</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="transport_amount" class="form-label">Transport Amount Without GST</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="transport_amount" name="transport_amount" 
+                               value="{{ invoice.transport_amount }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="transport_cgst" class="form-label">CGST on Transport (2.5%)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="transport_cgst" name="transport_cgst" 
+                               value="{{ invoice.transport_cgst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="transport_sgst" class="form-label">SGST on Transport (2.5%)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="transport_sgst" name="transport_sgst" 
+                               value="{{ invoice.transport_sgst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="transport_tds" class="form-label">TDS on Transport (%)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">%</span>
+                        <input type="text" class="form-control" id="transport_tds" name="transport_tds" 
+                               value="{{ invoice.transport_tds_percent }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="transport_tds_amount" class="form-label">TDS Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="transport_tds_amount" name="transport_tds_amount" 
+                               value="{{ invoice.transport_tds_amount }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="transport_amount_after_tds" class="form-label">Amount After TDS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="transport_amount_after_tds" name="transport_amount_after_tds" 
+                               value="{{ invoice.transport_tds_deducted }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading/Unloading Section -->
+        <div class="col-12 section-card">
+            <div class="section-header">
+                <h5 class="section-title">Loading/Unloading Details</h5>
+                <i class="fas fa-pallet section-icon"></i>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Loading/Unloading GST</label>
+                    <div class="gst-radio-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="loading_with_gst" id="loading_with" value="with" 
+                                   {% if invoice.loading_with_gst %}checked{% endif %}>
+                            <label class="form-check-label" for="loading_with">With GST</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="loading_with_gst" id="loading_without" value="without" 
+                                   {% if not invoice.loading_with_gst %}checked{% endif %}>
+                            <label class="form-check-label" for="loading_without">Without GST</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="loading_amount" class="form-label">Loading/Unloading Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="loading_amount" name="loading_amount" 
+                               value="{{ invoice.loading_amount }}" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="loading_cgst" class="form-label">CGST on Loading (9%)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="loading_cgst" name="loading_cgst" 
+                               value="{{ invoice.loading_cgst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="loading_sgst" class="form-label">SGST on Loading (9%)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="loading_sgst" name="loading_sgst" 
+                               value="{{ invoice.loading_sgst }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="loading_tds" class="form-label">TDS on Loading (%)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">%</span>
+                        <input type="text" class="form-control" id="loading_tds" name="loading_tds" 
+                               value="{{ invoice.loading_tds_percent }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="loading_tds_amount" class="form-label">TDS Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="loading_tds_amount" name="loading_tds_amount" 
+                               value="{{ invoice.loading_tds_amount }}" readonly>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="loading_amount_after_tds" class="form-label">Amount After TDS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control" id="loading_amount_after_tds" name="loading_amount_after_tds" 
+                               value="{{ invoice.loading_tds_deducted }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+

@@ -381,6 +381,127 @@ def charts_dashboard():
                          total_purchases=total_purchases,
                          deliveries_data=deliveries_data)
     
+
+@app.route('/edit_invoice/<int:invoice_id>', methods=['GET'])
+def edit_invoice(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+    
+    # Convert date to the format used in the form
+    date_str = invoice.date.strftime('%d/%m/%Y')
+    
+    # Render just the form part for the modal
+    return render_template('edit_invoice.html', 
+                         invoice=invoice,
+                         date_str=date_str,
+                         materials=MATERIALS,
+                         units=UNITS,
+                         tcs_options=TCS_OPTIONS)
+
+@app.route('/update_invoice/<int:invoice_id>', methods=['POST'])
+def update_invoice(invoice_id):
+    invoice = Invoice.query.get_or_404(invoice_id)
+    
+    try:
+        # Process form data (similar to your index route)
+        date_str = request.form['date']
+        invoice.date = datetime.strptime(date_str, '%d/%m/%Y').date()
+        
+        invoice.vehicle_number = request.form['vehicle_number'].upper()
+        if not validate_vehicle_number(invoice.vehicle_number):
+            flash('Invalid vehicle number format', 'error')
+            return redirect(url_for('view_invoices'))
+        
+        invoice.supplier_name = request.form['supplier_name']
+        invoice.challan_bill_number = request.form['challan_bill_number']
+        invoice.material = request.form['material']
+        invoice.unit = request.form['unit']
+        
+        invoice.quantity = clean_number_input(request.form['quantity'])
+        invoice.basic_rate = clean_number_input(request.form['basic_rate'])
+        invoice.amount_without_gst = invoice.quantity * invoice.basic_rate
+        
+        # GST Section
+        invoice.gst_type = request.form['gst_type']
+        invoice.cgst = invoice.sgst = invoice.igst = 0.0
+        
+        if invoice.gst_type == 'Intra-State':
+            invoice.cgst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['cgst']) / 100
+            invoice.sgst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['sgst']) / 100
+        elif invoice.gst_type == 'Inter-State':
+            invoice.igst = (invoice.amount_without_gst * MATERIAL_RATES[invoice.material]['igst']) / 100
+        
+        invoice.cess = clean_number_input(request.form['cess'])
+        invoice.tcs = clean_number_input(request.form['tcs'])
+        
+        # Transport Section
+        invoice.transport_with_gst = request.form.get('transport_with_gst') == 'with'
+        invoice.transport_amount = clean_number_input(request.form['transport_amount'])
+        invoice.transport_cgst = invoice.transport_sgst = 0.0
+        invoice.transport_tds_amount = 0.0
+        
+        if invoice.transport_with_gst:
+            invoice.transport_cgst = (invoice.transport_amount * 2.5) / 100
+            invoice.transport_sgst = (invoice.transport_amount * 2.5) / 100
+        
+        transport_tds_percent = clean_number_input(request.form['transport_tds'])
+        if transport_tds_percent > 0:
+            invoice.transport_tds_amount = (invoice.transport_amount * transport_tds_percent) / 100
+            invoice.transport_tds_deducted = invoice.transport_amount - invoice.transport_tds_amount
+        
+        # Loading/Unloading Section
+        invoice.loading_with_gst = request.form.get('loading_with_gst') == 'with'
+        invoice.loading_amount = clean_number_input(request.form['loading_amount'])
+        invoice.loading_cgst = invoice.loading_sgst = 0.0
+        invoice.loading_tds_amount = 0.0
+        
+        if invoice.loading_with_gst:
+            invoice.loading_cgst = (invoice.loading_amount * 9) / 100
+            invoice.loading_sgst = (invoice.loading_amount * 9) / 100
+        
+        loading_tds_percent = clean_number_input(request.form['loading_tds'])
+        if loading_tds_percent > 0:
+            invoice.loading_tds_amount = (invoice.loading_amount * loading_tds_percent) / 100
+            invoice.loading_tds_deducted = invoice.loading_amount - invoice.loading_tds_amount
+        
+        # Calculate totals
+        invoice.total_tds = invoice.transport_tds_amount + invoice.loading_tds_amount
+        invoice.total_cess = invoice.cess
+        invoice.total_tcs = invoice.tcs
+        
+        invoice.total_gst_amount = (invoice.cgst + invoice.sgst + invoice.igst + 
+                                    invoice.transport_cgst + invoice.transport_sgst + 
+                                    invoice.loading_cgst + invoice.loading_sgst)
+        
+        invoice.total_excluding_gst = invoice.amount_without_gst + invoice.transport_amount + invoice.loading_amount
+        invoice.grand_total = invoice.total_excluding_gst + invoice.total_gst_amount + invoice.total_cess + invoice.total_tcs
+        
+        db.session.commit()
+        
+        return '', 200  # Success response
+    
+    except Exception as e:
+        db.session.rollback()
+        return str(e), 400  # Error response
+
+@app.route('/delete_invoices', methods=['POST'])
+def delete_invoices():
+    try:
+        data = request.get_json()
+        invoice_ids = data.get('invoice_ids', [])
+        
+        if not invoice_ids:
+            return 'No invoices selected', 400
+        
+        # Delete the selected invoices
+        Invoice.query.filter(Invoice.id.in_(invoice_ids)).delete(synchronize_session=False)
+        db.session.commit()
+        
+        return '', 200  # Success response
+    
+    except Exception as e:
+        db.session.rollback()
+        return str(e), 400  # Error response
+    
     
 if __name__ == '__main__':
     app.run(debug=True)

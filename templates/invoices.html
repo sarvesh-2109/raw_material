@@ -7,6 +7,14 @@
             <h2 class="d-inline-block">Invoice Data</h2>
         </div>
         <div class="d-flex">
+            <div class="btn-group me-2" id="actionButtons" style="display: none;">
+                <button class="btn btn-warning" id="editBtn" disabled>
+                    <i class="fas fa-edit me-2"></i>Edit
+                </button>
+                <button class="btn btn-danger" id="deleteBtn">
+                    <i class="fas fa-trash me-2"></i>Delete
+                </button>
+            </div>
             <a href="{{ url_for('export_invoices', from_date=request.args.get('from_date', ''), to_date=request.args.get('to_date', '')) }}" 
             class="btn btn-success me-2" id="exportBtn">
                 <i class="fas fa-file-excel me-2"></i>Export to Excel
@@ -43,6 +51,7 @@
         <table class="table table-striped table-bordered">
             <thead class="table-dark">
                 <tr>
+                    <th><input type="checkbox" id="selectAll"></th>
                     <th>Sr. No.</th>
                     <!-- <th>ID</th> -->
                     <th>Date</th>
@@ -85,6 +94,7 @@
             <tbody>
                 {% for invoice in invoices %}
                 <tr>
+                    <td><input type="checkbox" class="invoice-checkbox" value="{{ invoice.id }}"></td>
                     <td>{{ loop.index }}</td>
                     <!-- <td>{{ invoice.id }}</td> -->
                     <td>{{ invoice.date.strftime('%d/%m/%Y') }}</td>
@@ -129,20 +139,166 @@
     </div>
 </div>
 
-<!-- <script>
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editModalLabel">Edit Invoice</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- This will be loaded dynamically -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveChanges">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the selected invoices?</p>
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Update export button URL with current filter parameters
-    const exportBtn = document.getElementById('exportBtn');
-    const fromDate = document.getElementById('from_date').value;
-    const toDate = document.getElementById('to_date').value;
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.invoice-checkbox');
+    const actionButtons = document.getElementById('actionButtons');
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     
-    if (fromDate || toDate) {
-        let href = exportBtn.getAttribute('href');
-        href += `?from_date=${fromDate}&to_date=${toDate}`;
-        exportBtn.setAttribute('href', href);
+    // Select all checkboxes
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateActionButtons();
+    });
+    
+    // Update action buttons when checkboxes change
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateActionButtons);
+    });
+    
+    function updateActionButtons() {
+        const checkedBoxes = document.querySelectorAll('.invoice-checkbox:checked');
+        
+        if (checkedBoxes.length > 0) {
+            actionButtons.style.display = 'flex';
+            
+            // Enable edit button only if exactly one invoice is selected
+            editBtn.disabled = checkedBoxes.length !== 1;
+        } else {
+            actionButtons.style.display = 'none';
+        }
     }
+    
+    // Edit button click handler
+    editBtn.addEventListener('click', function() {
+        if (this.disabled) return;
+        
+        const checkedBox = document.querySelector('.invoice-checkbox:checked');
+        if (!checkedBox) return;
+        
+        const invoiceId = checkedBox.value;
+        
+        // Load the edit form via AJAX
+        fetch(`/edit_invoice/${invoiceId}`)
+            .then(response => response.text())
+            .then(html => {
+                document.querySelector('#editModal .modal-body').innerHTML = html;
+                editModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading edit form:', error);
+                alert('Error loading edit form');
+            });
+    });
+    
+    // Save changes handler
+    document.getElementById('saveChanges').addEventListener('click', function() {
+        const form = document.querySelector('#editModal form');
+        if (!form) return;
+        
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload(); // Refresh the page to see changes
+            } else {
+                alert('Error saving changes');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving changes:', error);
+            alert('Error saving changes');
+        });
+    });
+    
+    // Delete button click handler
+    deleteBtn.addEventListener('click', function() {
+        const checkedBoxes = document.querySelectorAll('.invoice-checkbox:checked');
+        if (checkedBoxes.length === 0) return;
+        
+        deleteModal.show();
+    });
+    
+    // Confirm delete handler
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        const checkedBoxes = document.querySelectorAll('.invoice-checkbox:checked');
+        const invoiceIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
+        
+        fetch('/delete_invoices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ invoice_ids: invoiceIds })
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload(); // Refresh the page to see changes
+            } else {
+                alert('Error deleting invoices');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting invoices:', error);
+            alert('Error deleting invoices');
+        });
+    });
 });
-</script> -->
+</script>
 
 <style>
     .table-responsive {
@@ -171,6 +327,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .table th {
         min-width: 100px;
+    }
+    
+    /* Style for checkboxes */
+    .invoice-checkbox {
+        cursor: pointer;
+    }
+    
+    /* Style for action buttons container */
+    #actionButtons {
+        gap: 0.5rem;
     }
 </style>
 {% endblock %}
