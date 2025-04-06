@@ -191,20 +191,21 @@ def index():
 
 @app.route('/invoices')
 def view_invoices():
-    invoices = Invoice.query.order_by(Invoice.date.desc()).all()
+    invoices = Invoice.query.order_by(Invoice.date.asc(), Invoice.id.asc()).all()
     return render_template('invoices.html', invoices=invoices)
 
 
 @app.route('/export_invoices')
 def export_invoices():
     # Query all invoices
-    invoices = Invoice.query.all()
+    invoices = Invoice.query.order_by(Invoice.date.asc(), Invoice.id.asc()).all()
     
     # Convert to pandas DataFrame
     data = []
-    for invoice in invoices:
+    for index, invoice in enumerate(invoices, start=1):
         invoice_dict = {
-            'ID': invoice.id,
+            'Sr. No.': index,
+            #'ID': invoice.id,
             'Date': invoice.date.strftime('%d/%m/%Y'),
             'Vehicle Number': invoice.vehicle_number,
             'Supplier Name': invoice.supplier_name,
