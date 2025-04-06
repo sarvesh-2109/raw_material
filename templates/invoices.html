@@ -7,12 +7,35 @@
             <h2 class="d-inline-block">Invoice Data</h2>
         </div>
         <div class="d-flex">
-            <a href="{{ url_for('export_invoices') }}" class="btn btn-success me-2">
+            <a href="{{ url_for('export_invoices', from_date=request.args.get('from_date', ''), to_date=request.args.get('to_date', '')) }}" 
+            class="btn btn-success me-2" id="exportBtn">
                 <i class="fas fa-file-excel me-2"></i>Export to Excel
             </a>
             <a href="{{ url_for('index') }}" class="btn btn-primary">
                 <i class="fas fa-home me-2"></i>Back to Home
             </a>
+        </div>
+    </div>
+
+    <!-- Date Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('view_invoices') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label for="from_date" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="from_date" name="from_date" 
+                           value="{{ request.args.get('from_date', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="to_date" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="to_date" name="to_date" 
+                           value="{{ request.args.get('to_date', '') }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filter</button>
+                    <a href="{{ url_for('view_invoices') }}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -105,6 +128,21 @@
         </table>
     </div>
 </div>
+
+<!-- <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update export button URL with current filter parameters
+    const exportBtn = document.getElementById('exportBtn');
+    const fromDate = document.getElementById('from_date').value;
+    const toDate = document.getElementById('to_date').value;
+    
+    if (fromDate || toDate) {
+        let href = exportBtn.getAttribute('href');
+        href += `?from_date=${fromDate}&to_date=${toDate}`;
+        exportBtn.setAttribute('href', href);
+    }
+});
+</script> -->
 
 <style>
     .table-responsive {

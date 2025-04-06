@@ -189,16 +189,38 @@ def index():
                          tcs_options=TCS_OPTIONS)
 
 
+def get_filtered_invoices():
+    from_date_str = request.args.get('from_date')
+    to_date_str = request.args.get('to_date')
+    
+    query = Invoice.query.order_by(Invoice.date.asc(), Invoice.id.asc())
+    
+    if from_date_str:
+        try:
+            from_date = datetime.strptime(from_date_str, '%Y-%m-%d').date()
+            query = query.filter(Invoice.date >= from_date)
+        except ValueError:
+            flash('Invalid from date format', 'error')
+    
+    if to_date_str:
+        try:
+            to_date = datetime.strptime(to_date_str, '%Y-%m-%d').date()
+            query = query.filter(Invoice.date <= to_date)
+        except ValueError:
+            flash('Invalid to date format', 'error')
+    
+    return query.all()
+
+
 @app.route('/invoices')
 def view_invoices():
-    invoices = Invoice.query.order_by(Invoice.date.asc(), Invoice.id.asc()).all()
+    invoices = get_filtered_invoices()
     return render_template('invoices.html', invoices=invoices)
 
 
 @app.route('/export_invoices')
 def export_invoices():
-    # Query all invoices
-    invoices = Invoice.query.order_by(Invoice.date.asc(), Invoice.id.asc()).all()
+    invoices = get_filtered_invoices()
     
     # Convert to pandas DataFrame
     data = []
