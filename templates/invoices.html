@@ -220,25 +220,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Edit button click handler
-    editBtn.addEventListener('click', function() {
-        if (this.disabled) return;
-        
-        const checkedBox = document.querySelector('.invoice-checkbox:checked');
-        if (!checkedBox) return;
-        
-        const invoiceId = checkedBox.value;
-        
-        // Load the edit form via AJAX
-        fetch(`/edit_invoice/${invoiceId}`)
-            .then(response => response.text())
-            .then(html => {
-                document.querySelector('#editModal .modal-body').innerHTML = html;
-                editModal.show();
-            })
-            .catch(error => {
-                console.error('Error loading edit form:', error);
-                alert('Error loading edit form');
+editBtn.addEventListener('click', function() {
+    if (this.disabled) return;
+    
+    const checkedBox = document.querySelector('.invoice-checkbox:checked');
+    if (!checkedBox) return;
+    
+    const invoiceId = checkedBox.value;
+    
+    // Load the edit form via AJAX
+    fetch(`/edit_invoice/${invoiceId}`)
+        .then(response => response.text())
+        .then(html => {
+            const modalBody = document.querySelector('#editModal .modal-body');
+            modalBody.innerHTML = html;
+            
+            // Extract and execute script tags
+            const scripts = modalBody.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                document.body.appendChild(newScript).parentNode.removeChild(newScript);
             });
+            
+            editModal.show();
+        })
+        .catch(error => {
+            console.error('Error loading edit form:', error);
+            alert('Error loading edit form');
+        });
     });
     
     // Save changes handler

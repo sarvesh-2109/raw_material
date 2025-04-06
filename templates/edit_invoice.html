@@ -329,6 +329,275 @@
                 </div>
             </div>
         </div>
+
+        <!-- Totals Section -->
+        <div class="col-12 section-card totals-section">
+            <div class="section-header">
+                <h5 class="section-title">Totals</h5>
+                <i class="fas fa-calculator section-icon"></i>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="total_TDS_amount" class="form-label">Total TDS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control total-field" id="total_TDS_amount" name="total_TDS_amount" value="{{ invoice.total_tds }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="totalCess" class="form-label">Total CESS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control total-field" id="totalCess" name="totalCess" value="{{ invoice.total_cess }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="totalTcs" class="form-label">Total TCS</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control total-field" id="totalTcs" name="totalTcs" value="{{ invoice.total_tcs }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="total_excluding_gst" class="form-label">Total Amount Excluding GST</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control total-field" id="total_excluding_gst" name="total_excluding_gst" value="{{ invoice.total_excluding_gst }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="total_gst_amount" class="form-label">Total GST Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control total-field" id="total_gst_amount" name="total_gst_amount" value="{{ invoice.total_gst_amount }}" readonly>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="grandTotal" class="form-label">Grand Total</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="text" class="form-control total-field highlight-total" id="grandTotal" name="grandTotal" value="{{ invoice.grand_total }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </form>
 
+<!-- Add this at the end of the template -->
+<script>
+    // Define MATERIAL_RATES in the global scope
+    const MATERIAL_RATES = {
+        'Cement': {cgst: 14, sgst: 14, igst: 28},
+        'Lime Powder': {cgst: 2.5, sgst: 2.5, igst: 5},
+        'Gypsum': {cgst: 2.5, sgst: 2.5, igst: 5},
+        'Aluminium Powder': {cgst: 9, sgst: 9, igst: 18},
+        'Soluble Oil': {cgst: 9, sgst: 9, igst: 18},
+        'Mould Oil': {cgst: 9, sgst: 9, igst: 18},
+        'DC Powder': {cgst: 9, sgst: 9, igst: 18},
+        'Pond Ash': {cgst: 2.5, sgst: 2.5, igst: 5},
+        'Biomass Briquette': {cgst: 2.5, sgst: 2.5, igst: 5},
+        'Fly Ash': {cgst: 2.5, sgst: 2.5, igst: 5},
+        'Coal': {cgst: 2.5, sgst: 2.5, igst: 5},
+        'Wood': {cgst: 0, sgst: 0, igst: 0},
+        'Hardener': {cgst: 9, sgst: 9, igst: 18},
+        'Mortar Bags': {cgst: 9, sgst: 9, igst: 18}
+    };
+
+    // Initialize calculations when the modal content is loaded
+    $(document).ready(function() {
+        // Initialize Select2 and Datepicker
+        $('.select2').select2({ width: '100%' });
+        $('.date-picker').datepicker({ 
+            format: 'dd/mm/yyyy', 
+            autoclose: true, 
+            todayHighlight: true 
+        });
+    
+        // Set up all the event handlers
+        setupEventHandlers();
+        
+        // Trigger initial calculations with existing values
+        calculateAll();
+    });
+
+    // CALCULATION FUNCTIONS (same as in your script.js)
+    function calculateAll() {
+        calculateAmountWithoutGST();
+        calculateGST();
+        calculateTransportGST();
+        calculateLoadingGST();
+        calculateTotals();
+    }
+
+    function cleanNumberInput(value) {
+        if (!value || isNaN(value)) return 0;
+        return parseFloat(value.toString().replace(/,/g, ''));
+    }
+
+    function calculateAmountWithoutGST() {
+        const quantity = cleanNumberInput($('#quantity').val());
+        const rate = cleanNumberInput($('#basic_rate').val());
+        const amount = quantity * rate;
+        $('#amount_without_gst').val(amount.toFixed(2)).trigger('change');
+    }
+
+    function calculateGST() {
+        const material = $('#material').val();
+        const gstType = $('input[name="gst_type"]:checked').val();
+        const amountWithoutGST = cleanNumberInput($('#amount_without_gst').val());
+        
+        let cgst = 0, sgst = 0, igst = 0;
+        
+        if (material && gstType && amountWithoutGST > 0) {
+            if (gstType === 'Intra-State' && MATERIAL_RATES[material]) {
+                cgst = (amountWithoutGST * MATERIAL_RATES[material].cgst) / 100;
+                sgst = (amountWithoutGST * MATERIAL_RATES[material].sgst) / 100;
+            } else if (gstType === 'Inter-State' && MATERIAL_RATES[material]) {
+                igst = (amountWithoutGST * MATERIAL_RATES[material].igst) / 100;
+            }
+        }
+        
+        $('#cgst').val(cgst.toFixed(2)).trigger('input');
+        $('#sgst').val(sgst.toFixed(2)).trigger('input');
+        $('#igst').val(igst.toFixed(2)).trigger('input');
+    }
+
+    function calculateTransportGST() {
+        const withGST = $('input[name="transport_with_gst"]:checked').val() === 'with';
+        const transportAmount = cleanNumberInput($('#transport_amount').val());
+        
+        let transportCGST = 0, transportSGST = 0;
+        
+        if (withGST && transportAmount > 0) {
+            transportCGST = (transportAmount * 2.5) / 100;
+            transportSGST = (transportAmount * 2.5) / 100;
+        }
+        
+        $('#transport_cgst').val(transportCGST.toFixed(2)).trigger('input');
+        $('#transport_sgst').val(transportSGST.toFixed(2)).trigger('input');
+    }
+
+    function calculateLoadingGST() {
+        const withGST = $('input[name="loading_with_gst"]:checked').val() === 'with';
+        const loadingAmount = cleanNumberInput($('#loading_amount').val());
+        
+        let loadingCGST = 0, loadingSGST = 0;
+        
+        if (withGST && loadingAmount > 0) {
+            loadingCGST = (loadingAmount * 9) / 100;
+            loadingSGST = (loadingAmount * 9) / 100;
+        }
+        
+        $('#loading_cgst').val(loadingCGST.toFixed(2)).trigger('input');
+        $('#loading_sgst').val(loadingSGST.toFixed(2)).trigger('input');
+    }
+
+    function calculateTotals() {
+        const amountWithoutGST = cleanNumberInput($('#amount_without_gst').val());
+        const cgst = cleanNumberInput($('#cgst').val());
+        const sgst = cleanNumberInput($('#sgst').val());
+        const igst = cleanNumberInput($('#igst').val());
+        const cess = cleanNumberInput($('#cess').val());
+        const tcs = cleanNumberInput($('#tcs').val());
+        
+        const transportAmount = cleanNumberInput($('#transport_amount').val());
+        const transportCGST = cleanNumberInput($('#transport_cgst').val());
+        const transportSGST = cleanNumberInput($('#transport_sgst').val());
+        const transportTDSPercent = cleanNumberInput($('#transport_tds').val());
+        let transportTDSamount = 0;
+        let transportTDS = 0;
+        
+        if (transportTDSPercent > 0) {
+            transportTDSamount = (transportAmount * transportTDSPercent) / 100;
+            transportTDS = transportAmount - transportTDSamount;
+        }
+        
+        const loadingAmount = cleanNumberInput($('#loading_amount').val());
+        const loadingCGST = cleanNumberInput($('#loading_cgst').val());
+        const loadingSGST = cleanNumberInput($('#loading_sgst').val());
+        const loadingTDSPercent = cleanNumberInput($('#loading_tds').val());
+        let loadingTDSamount = 0;
+        let loadingTDS = 0;
+        
+        if (loadingTDSPercent > 0) {
+            loadingTDSamount = (loadingAmount * loadingTDSPercent) / 100;
+            loadingTDS = loadingAmount - loadingTDSamount;
+        }
+
+        const total_TDS_amount = transportTDSamount + loadingTDSamount;
+        const totalCess = cess;
+        const totalTcs = tcs;
+
+        const totalGSTAmount = cgst + sgst + igst + 
+                              transportCGST + transportSGST +  
+                              loadingCGST + loadingSGST; 
+        
+        const totalExcludingGST = amountWithoutGST + transportAmount + loadingAmount;
+        const grandTotal = totalExcludingGST + totalGSTAmount + totalCess + totalTcs;
+
+        $('#transport_tds_amount').val(transportTDSamount.toFixed(2)).trigger('change');
+        $('#transport_amount_after_tds').val(transportTDS.toFixed(2)).trigger('change');
+        
+        $('#loading_tds_amount').val(loadingTDSamount.toFixed(2)).trigger('change');
+        $('#loading_amount_after_tds').val(loadingTDS.toFixed(2)).trigger('change');
+        
+        $('#total_TDS_amount').val(total_TDS_amount.toFixed(2)).trigger('change');
+        $('#totalCess').val(totalCess.toFixed(2)).trigger('change');
+        $('#totalTcs').val(totalTcs.toFixed(2)).trigger('change');
+        $('#total_excluding_gst').val(totalExcludingGST.toFixed(2)).trigger('change');
+        $('#total_gst_amount').val(totalGSTAmount.toFixed(2)).trigger('change');
+        $('#grandTotal').val(grandTotal.toFixed(2)).trigger('change');
+    }
+
+    // Set up event handlers for all input fields
+    function setupEventHandlers() {
+        // Quantity and Basic Rate - Update on ANY input change (keypress, paste, etc.)
+        $('#quantity, #basic_rate').on('input keyup', function() {
+            calculateAmountWithoutGST();
+            calculateGST();
+            calculateTotals();
+        });
+
+        // Material and GST Type - Update immediately on change
+        $('#material').on('change', function() {
+            calculateGST();
+            calculateTotals();
+        });
+        
+        $('input[name="gst_type"]').on('change', function() {
+            calculateGST();
+            calculateTotals();
+        });
+
+        // Transport Section - Update on input/keyup
+        $('#transport_amount, #transport_tds').on('input keyup', function() {
+            calculateTransportGST();
+            calculateTotals();
+        });
+        
+        $('input[name="transport_with_gst"]').on('change', function() {
+            calculateTransportGST();
+            calculateTotals();
+        });
+
+        // Loading Section - Update on input/keyup
+        $('#loading_amount, #loading_tds').on('input keyup', function() {
+            calculateLoadingGST();
+            calculateTotals();
+        });
+        
+        $('input[name="loading_with_gst"]').on('change', function() {
+            calculateLoadingGST();
+            calculateTotals();
+        });
+
+        // Other fields
+        $('#cess, #tcs').on('input keyup', calculateTotals);
+
+        // Vehicle number uppercase
+        $('#vehicle_number').on('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+</script>
