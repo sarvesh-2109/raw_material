@@ -69,7 +69,7 @@
     <!-- Material Distribution Chart -->
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Material Distribution</h5>
+            <h5 class="card-title">Material Distribution by Total Value</h5>
             <div id="materialChart"></div>
         </div>
     </div>
@@ -183,11 +183,11 @@ $(document).ready(function() {
     // Material Distribution Chart (Pie)
     const materialData = JSON.parse('{{ material_data|tojson|safe }}');
     const materialNames = materialData.map(item => item.material);
-    const materialQuantities = materialData.map(item => item.total_quantity);
+    const materialValues = materialData.map(item => item.total_value);
 
     const materialTrace = {
         labels: materialNames,
-        values: materialQuantities,
+        values: materialValues,
         type: 'pie',
         textinfo: 'label+percent',
         textposition: 'inside',
@@ -200,7 +200,7 @@ $(document).ready(function() {
     };
 
     const materialLayout = {
-        title: 'Material Distribution by Quantity',
+        title: 'Material Distribution by Total Value (₹)',
         height: 500,
         showlegend: true
     };

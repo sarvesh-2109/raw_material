@@ -406,7 +406,7 @@ def charts_dashboard():
     # Material distribution (for pie chart)
     material_data = db.session.query(
         Invoice.material,
-        db.func.sum(Invoice.quantity).label('total_quantity'),
+        db.func.sum(Invoice.amount_without_gst).label('total_value'),
         db.func.count(Invoice.id).label('delivery_count')
     ).filter(
         Invoice.date.between(from_date, to_date),
@@ -414,12 +414,12 @@ def charts_dashboard():
     ).group_by(
         Invoice.material
     ).order_by(
-        db.func.sum(Invoice.quantity).desc()
+        db.func.sum(Invoice.amount_without_gst).desc()
     ).all()
     
     material_data = [{
         'material': item[0] if item[0] else 'Unknown',
-        'total_quantity': float(item[1]) if item[1] else 0,
+        'total_value': float(item[1]) if item[1] else 0,
         'delivery_count': item[2]
     } for item in material_data]
     
