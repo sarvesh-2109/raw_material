@@ -73,6 +73,18 @@
             <div id="materialChart"></div>
         </div>
     </div>
+
+    <!-- Quantity vs Material by Unit Charts -->
+    {% for unit, data in quantity_by_unit_data.items() %}
+        {% if data %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Quantity vs Material (Unit: {{ unit }})</h5>
+                <div id="quantityChart_{{ unit|replace(' ', '_') }}"></div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
 </div>
 {% endblock %}
 
@@ -194,6 +206,52 @@ $(document).ready(function() {
     };
 
     Plotly.newPlot('materialChart', [materialTrace], materialLayout);
+
+    // Quantity vs Material by Unit Charts
+    const quantityByUnitData = JSON.parse('{{ quantity_by_unit_data|tojson|safe }}');
+    Object.keys(quantityByUnitData).forEach(unit => {
+        const unitData = quantityByUnitData[unit];
+        if (unitData.length > 0) {
+            const materials = unitData.map(item => item.material);
+            const quantities = unitData.map(item => item.total_quantity);
+
+            const sortedUnitData = materials.map((material, index) => ({
+                material,
+                quantity: quantities[index]
+            })).sort((a, b) => b.quantity - a.quantity);
+
+            const sortedMaterials = sortedUnitData.map(item => item.material);
+            const sortedQuantities = sortedUnitData.map(item => item.quantity);
+
+            const trace = {
+                x: sortedMaterials,
+                y: sortedQuantities,
+                type: 'bar',
+                marker: {
+                    color: 'rgba(44, 160, 44, 0.7)',
+                    line: {
+                        color: 'rgba(44, 160, 44, 1.0)',
+                        width: 1
+                    }
+                }
+            };
+
+            const layout = {
+                title: `Quantity vs Material (Unit: ${unit})`,
+                xaxis: {
+                    title: 'Material',
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: `Total Quantity (${unit})`,
+                    tickformat: ',.2f'
+                },
+                margin: { b: 100 }
+            };
+
+            Plotly.newPlot(`quantityChart_${unit.replace(' ', '_')}`, [trace], layout);
+        }
+    });
 
     // Handle date filter form submission
     $('#dateFilterForm').on('submit', function(e) {

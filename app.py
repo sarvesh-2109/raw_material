@@ -403,7 +403,7 @@ def charts_dashboard():
         'total_amount': float(item[1]) if item[1] else 0
     } for item in transporter_data]
     
-    # Material distribution
+    # Material distribution (for pie chart)
     material_data = db.session.query(
         Invoice.material,
         db.func.sum(Invoice.quantity).label('total_quantity'),
@@ -423,6 +423,30 @@ def charts_dashboard():
         'delivery_count': item[2]
     } for item in material_data]
     
+    # Quantity vs Material by Unit
+    quantity_by_unit_data = {}
+    units_query = db.session.query(Invoice.unit).distinct().all()
+    units = [unit[0] for unit in units_query if unit[0]]  # Filter out None/empty units
+    
+    for unit in units:
+        unit_data = db.session.query(
+            Invoice.material,
+            db.func.sum(Invoice.quantity).label('total_quantity')
+        ).filter(
+            Invoice.date.between(from_date, to_date),
+            Invoice.vendor_type == 'supplier',
+            Invoice.unit == unit
+        ).group_by(
+            Invoice.material
+        ).order_by(
+            db.func.sum(Invoice.quantity).desc()
+        ).all()
+        
+        quantity_by_unit_data[unit] = [{
+            'material': item[0] if item[0] else 'Unknown',
+            'total_quantity': float(item[1]) if item[1] else 0
+        } for item in unit_data if item[1] > 0]  # Only include non-zero quantities
+    
     return render_template('charts.html',
                          from_date=from_date.strftime('%d/%m/%Y'),
                          to_date=to_date.strftime('%d/%m/%Y'),
@@ -430,7 +454,8 @@ def charts_dashboard():
                          total_purchases=total_purchases,
                          supplier_data=supplier_data,
                          transporter_data=transporter_data,
-                         material_data=material_data)
+                         material_data=material_data,
+                         quantity_by_unit_data=quantity_by_unit_data)
     
 
 @app.route('/edit_invoice/<int:invoice_id>', methods=['GET'])
