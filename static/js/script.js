@@ -21,8 +21,7 @@ $(document).ready(function() {
         'Fly Ash': {cgst: 2.5, sgst: 2.5, igst: 5},
         'Coal': {cgst: 2.5, sgst: 2.5, igst: 5},
         'Wood': {cgst: 0, sgst: 0, igst: 0},
-        'Hardener': {cgst: 9, sgst: 9, igst: 18},
-        'Mortar Bags': {cgst: 9, sgst: 9, igst: 18}
+        'Hardener': {cgst: 9, sgst: 9, igst: 18}
     };
 
     // Set up event handlers for all input fields

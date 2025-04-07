@@ -33,12 +33,11 @@ MATERIAL_RATES = {
     'Fly Ash': {'cgst': 2.5, 'sgst': 2.5, 'igst': 5},
     'Coal': {'cgst': 2.5, 'sgst': 2.5, 'igst': 5},
     'Wood': {'cgst': 0, 'sgst': 0, 'igst': 0},
-    'Hardener': {'cgst': 9, 'sgst': 9, 'igst': 18},
-    'Mortar Bags': {'cgst': 9, 'sgst': 9, 'igst': 18}
+    'Hardener': {'cgst': 9, 'sgst': 9, 'igst': 18}
 }
 
 MATERIALS = list(MATERIAL_RATES.keys())
-UNITS = ['MT', 'Kg', 'BRASS', 'TON', 'Ltr', 'Bags']
+UNITS = ['MT', 'Kg', 'BRASS', 'TON', 'Ltr']
 TCS_OPTIONS = ['None', '0.100']
 
 def clean_number_input(value):
