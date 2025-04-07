@@ -1,12 +1,10 @@
 $(document).ready(function() {
     // Initialize Select2 and Datepicker
     $('.select2').select2({ width: '100%' });
-    $('.bootstrap-datepicker').datepicker({
-        format: 'dd/mm/yyyy', // Set display and parsing format
-        autoclose: true,      // Close picker after selection
-        todayHighlight: true, // Highlight today's date
-        forceParse: true,     // Force parsing of manual input to dd/mm/yyyy
-        orientation: 'bottom auto' // Position the calendar below the input
+    $('#date').datepicker({ 
+        format: 'dd/mm/yyyy', 
+        autoclose: true, 
+        todayHighlight: true 
     });
 
     // Material GST rates
