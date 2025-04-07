@@ -444,6 +444,34 @@
         
         // Trigger initial calculations with existing values
         calculateAll();
+        
+        // Handle vendor type change
+        $('input[name="vendor_type"]').on('change', function() {
+            const isSupplier = $(this).val() === 'supplier';
+            
+            // Toggle supplier sections
+            $('.supplier-section').toggle(isSupplier);
+            
+            // Enable/disable GST type radio buttons
+            $('input[name="gst_type"]').prop('disabled', !isSupplier);
+            
+            // If switching to transporter, reset supplier-specific fields
+            if (!isSupplier) {
+                $('#material').val('').trigger('change');
+                $('#unit').val('').trigger('change');
+                $('#quantity, #basic_rate, #amount_without_gst').val('0');
+                $('#gst_none').prop('checked', true);
+                $('#cgst, #sgst, #igst').val('0');
+                $('#cess, #tcs').val('0');
+            }
+            
+            calculateTotals();
+        });
+        
+        // Initialize the form based on current vendor type
+        const isSupplier = $('input[name="vendor_type"]:checked').val() === 'supplier';
+        $('.supplier-section').toggle(isSupplier);
+        $('input[name="gst_type"]').prop('disabled', !isSupplier);
     });
 
     // CALCULATION FUNCTIONS (same as in your script.js)
@@ -625,4 +653,27 @@
             this.value = this.value.toUpperCase();
         });
     }
+
+    // Handle form submission
+    $('form').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const url = form.attr('action');
+        
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: form.serialize(),
+            success: function(response) {
+                // Show success message and redirect
+                alert('Invoice updated successfully!');
+                window.location.href = "{{ url_for('view_invoices') }}";
+            },
+            error: function(xhr) {
+                // Show error message
+                alert('Error updating invoice: ' + xhr.responseText);
+            }
+        });
+    });
 </script>
