@@ -54,7 +54,23 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Total Amount by Suppliers</h5>
-            <div id="amountsChart"></div>
+            <div id="supplierChart"></div>
+        </div>
+    </div>
+
+    <!-- Total Amount by Transporters Chart -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Total Amount by Transporters</h5>
+            <div id="transporterChart"></div>
+        </div>
+    </div>
+
+    <!-- Material Distribution Chart -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Material Distribution</h5>
+            <div id="materialChart"></div>
         </div>
     </div>
 </div>
@@ -70,23 +86,22 @@ $(document).ready(function() {
         autoclose: true
     });
 
-    // Plot the chart - Only total amounts
-    const deliveriesData = JSON.parse('{{ deliveries_data|tojson|safe }}');
-    const suppliers = deliveriesData.map(item => item.supplier_name);
-    const amounts = deliveriesData.map(item => item.total_amount);
+    // Supplier Chart
+    const supplierData = JSON.parse('{{ supplier_data|tojson|safe }}');
+    const supplierNames = supplierData.map(item => item.supplier_name);
+    const supplierAmounts = supplierData.map(item => item.total_amount);
 
-    // Sort data by amount (descending)
-    const sortedData = suppliers.map((supplier, index) => ({
-        supplier,
-        amount: amounts[index]
+    const sortedSupplierData = supplierNames.map((name, index) => ({
+        name,
+        amount: supplierAmounts[index]
     })).sort((a, b) => b.amount - a.amount);
 
-    const sortedSuppliers = sortedData.map(item => item.supplier);
-    const sortedAmounts = sortedData.map(item => item.amount);
+    const sortedSupplierNames = sortedSupplierData.map(item => item.name);
+    const sortedSupplierAmounts = sortedSupplierData.map(item => item.amount);
 
-    const trace = {
-        x: sortedSuppliers,
-        y: sortedAmounts,
+    const supplierTrace = {
+        x: sortedSupplierNames,
+        y: sortedSupplierAmounts,
         type: 'bar',
         marker: {
             color: 'rgba(55, 128, 191, 0.7)',
@@ -97,7 +112,7 @@ $(document).ready(function() {
         }
     };
 
-    const layout = {
+    const supplierLayout = {
         title: 'Total Amount by Suppliers',
         xaxis: {
             title: 'Supplier Name',
@@ -107,12 +122,78 @@ $(document).ready(function() {
             title: 'Total Amount (₹)',
             tickformat: ',.2f'
         },
-        margin: {
-            b: 100  // Increase bottom margin for long supplier names
+        margin: { b: 100 }
+    };
+
+    Plotly.newPlot('supplierChart', [supplierTrace], supplierLayout);
+
+    // Transporter Chart
+    const transporterData = JSON.parse('{{ transporter_data|tojson|safe }}');
+    const transporterNames = transporterData.map(item => item.transporter_name);
+    const transporterAmounts = transporterData.map(item => item.total_amount);
+
+    const sortedTransporterData = transporterNames.map((name, index) => ({
+        name,
+        amount: transporterAmounts[index]
+    })).sort((a, b) => b.amount - a.amount);
+
+    const sortedTransporterNames = sortedTransporterData.map(item => item.name);
+    const sortedTransporterAmounts = sortedTransporterData.map(item => item.amount);
+
+    const transporterTrace = {
+        x: sortedTransporterNames,
+        y: sortedTransporterAmounts,
+        type: 'bar',
+        marker: {
+            color: 'rgba(255, 153, 51, 0.7)',
+            line: {
+                color: 'rgba(255, 153, 51, 1.0)',
+                width: 1
+            }
         }
     };
 
-    Plotly.newPlot('amountsChart', [trace], layout);
+    const transporterLayout = {
+        title: 'Total Amount by Transporters',
+        xaxis: {
+            title: 'Transporter Name',
+            tickangle: -45
+        },
+        yaxis: {
+            title: 'Total Amount (₹)',
+            tickformat: ',.2f'
+        },
+        margin: { b: 100 }
+    };
+
+    Plotly.newPlot('transporterChart', [transporterTrace], transporterLayout);
+
+    // Material Distribution Chart (Pie)
+    const materialData = JSON.parse('{{ material_data|tojson|safe }}');
+    const materialNames = materialData.map(item => item.material);
+    const materialQuantities = materialData.map(item => item.total_quantity);
+
+    const materialTrace = {
+        labels: materialNames,
+        values: materialQuantities,
+        type: 'pie',
+        textinfo: 'label+percent',
+        textposition: 'inside',
+        marker: {
+            colors: [
+                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+            ]
+        }
+    };
+
+    const materialLayout = {
+        title: 'Material Distribution by Quantity',
+        height: 500,
+        showlegend: true
+    };
+
+    Plotly.newPlot('materialChart', [materialTrace], materialLayout);
 
     // Handle date filter form submission
     $('#dateFilterForm').on('submit', function(e) {

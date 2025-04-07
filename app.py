@@ -347,18 +347,15 @@ def charts_dashboard():
         if from_date_str:
             from_date = datetime.strptime(from_date_str, '%d/%m/%Y').date()
         else:
-            # Get min date from database
             min_date = db.session.query(db.func.min(Invoice.date)).scalar()
             from_date = min_date if min_date else datetime.now().date()
         
         if to_date_str:
             to_date = datetime.strptime(to_date_str, '%d/%m/%Y').date()
         else:
-            # Get max date from database
             max_date = db.session.query(db.func.max(Invoice.date)).scalar()
             to_date = max_date if max_date else datetime.now().date()
     except:
-        # Fallback to default dates if parsing fails
         from_date = datetime.now().date() - timedelta(days=30)
         to_date = datetime.now().date()
 
@@ -371,32 +368,70 @@ def charts_dashboard():
     # Calculate total purchases
     total_purchases = db.session.query(db.func.sum(Invoice.grand_total)).scalar() or 0
     
-    # Get deliveries by suppliers data
-    deliveries_data = db.session.query(
+    # Deliveries by suppliers
+    supplier_data = db.session.query(
         Invoice.supplier_name,
-        db.func.count(Invoice.id).label('delivery_count'),
-        db.func.sum(Invoice.grand_total).label('total_amount')
+        db.func.sum(Invoice.amount_without_gst + Invoice.transport_amount + Invoice.loading_amount).label('total_amount')
     ).filter(
-        Invoice.date.between(from_date, to_date)
+        Invoice.date.between(from_date, to_date),
+        Invoice.vendor_type == 'supplier'
     ).group_by(
         Invoice.supplier_name
     ).order_by(
-        db.func.count(Invoice.id).desc()
+        db.func.sum(Invoice.amount_without_gst).desc()
     ).all()
     
-    # Convert to dictionary format for JSON
-    deliveries_data = [{
+    supplier_data = [{
         'supplier_name': item[0],
-        'delivery_count': item[1],
-        'total_amount': float(item[2]) if item[2] else 0
-    } for item in deliveries_data]
+        'total_amount': float(item[1]) if item[1] else 0
+    } for item in supplier_data]
+    
+    # Deliveries by transporters
+    transporter_data = db.session.query(
+        Invoice.supplier_name,
+        db.func.sum(Invoice.transport_amount).label('total_amount')
+    ).filter(
+        Invoice.date.between(from_date, to_date),
+        Invoice.vendor_type == 'transporter'
+    ).group_by(
+        Invoice.supplier_name
+    ).order_by(
+        db.func.sum(Invoice.transport_amount).desc()
+    ).all()
+    
+    transporter_data = [{
+        'transporter_name': item[0],
+        'total_amount': float(item[1]) if item[1] else 0
+    } for item in transporter_data]
+    
+    # Material distribution
+    material_data = db.session.query(
+        Invoice.material,
+        db.func.sum(Invoice.quantity).label('total_quantity'),
+        db.func.count(Invoice.id).label('delivery_count')
+    ).filter(
+        Invoice.date.between(from_date, to_date),
+        Invoice.vendor_type == 'supplier'
+    ).group_by(
+        Invoice.material
+    ).order_by(
+        db.func.sum(Invoice.quantity).desc()
+    ).all()
+    
+    material_data = [{
+        'material': item[0] if item[0] else 'Unknown',
+        'total_quantity': float(item[1]) if item[1] else 0,
+        'delivery_count': item[2]
+    } for item in material_data]
     
     return render_template('charts.html',
                          from_date=from_date.strftime('%d/%m/%Y'),
                          to_date=to_date.strftime('%d/%m/%Y'),
                          total_suppliers=total_suppliers,
                          total_purchases=total_purchases,
-                         deliveries_data=deliveries_data)
+                         supplier_data=supplier_data,
+                         transporter_data=transporter_data,
+                         material_data=material_data)
     
 
 @app.route('/edit_invoice/<int:invoice_id>', methods=['GET'])
