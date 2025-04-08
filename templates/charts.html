@@ -90,6 +90,14 @@
             <div id="quantityChart"></div>
         </div>
     </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Amount vs Material (With GST Breakdown)</h5>
+            <div id="amountMaterialChart"></div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
 
@@ -302,6 +310,93 @@ $(document).ready(function() {
     $('#unitSelector').on('change', function() {
         updateQuantityChart($(this).val());
     });
+
+    // Amount vs Material Chart (Stacked Bar)
+    const amountMaterialData = JSON.parse('{{ amount_by_material_data|tojson|safe }}');
+    const materials = amountMaterialData.map(item => item.material);
+    const amountsWithoutGst = amountMaterialData.map(item => item.total_amount_without_gst);
+    const gstAmounts = amountMaterialData.map(item => item.total_gst_amount);
+    const totalAmounts = amountMaterialData.map(item => item.total_amount_with_gst);
+
+    // Sort by total amount (without GST + GST)
+    const sortedData = materials.map((material, index) => ({
+        material,
+        withoutGst: amountsWithoutGst[index],
+        gst: gstAmounts[index],
+        total: totalAmounts[index]
+    })).sort((a, b) => b.total - a.total);
+
+    const sortedMaterials = sortedData.map(item => item.material);
+    const sortedAmountsWithoutGst = sortedData.map(item => item.withoutGst);
+    const sortedGstAmounts = sortedData.map(item => item.gst);
+    const sortedTotalAmounts = sortedData.map(item => item.total);
+
+    const traceWithoutGst = {
+        x: sortedMaterials,
+        y: sortedAmountsWithoutGst,
+        name: 'Amount Without GST',
+        type: 'bar',
+        marker: {
+            color: 'rgba(55, 128, 191, 0.7)',
+            line: {
+                color: 'rgba(55, 128, 191, 1.0)',
+                width: 1
+            }
+        }
+    };
+
+    const traceGst = {
+        x: sortedMaterials,
+        y: sortedGstAmounts,
+        name: 'GST Amount',
+        type: 'bar',
+        marker: {
+            color: 'rgba(255, 99, 71, 0.7)',
+            line: {
+                color: 'rgba(255, 99, 71, 1.0)',
+                width: 1
+            }
+        },
+        text: sortedTotalAmounts.map(amount => `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
+        textposition: 'top',
+        textfont: {
+            size: 12,
+            color: '#000000'
+        }
+    };
+
+    const amountMaterialLayout = {
+        title: 'Amount vs Material (With GST Breakdown)',
+        barmode: 'stack',
+        xaxis: {
+            title: 'Material',
+            tickangle: -45
+        },
+        yaxis: {
+            title: 'Amount (₹)',
+            tickformat: ',.2f'
+        },
+        margin: { b: 100, t: 100 }, // Increased top margin for text labels
+        legend: {
+            x: 1,
+            y: 1,
+            bgcolor: 'rgba(255, 255, 255, 0.5)',
+            bordercolor: 'rgba(0, 0, 0, 0.1)'
+        },
+        annotations: sortedTotalAmounts.map((amount, index) => ({
+            x: sortedMaterials[index],
+            y: amount,
+            text: `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+            showarrow: false,
+            yshift: 10,
+            font: {
+                size: 12,
+                color: '#000000'
+            }
+        }))
+    };
+
+    Plotly.newPlot('amountMaterialChart', [traceWithoutGst, traceGst], amountMaterialLayout);
 
     // Handle date filter form submission
     $('#dateFilterForm').on('submit', function(e) {

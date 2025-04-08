@@ -447,15 +447,37 @@ def charts_dashboard():
             'total_quantity': float(item[1]) if item[1] else 0
         } for item in unit_data if item[1] > 0]  # Only include non-zero quantities
 
+    amount_by_material_data = db.session.query(
+        Invoice.material,
+        db.func.sum(Invoice.amount_without_gst).label('total_amount_without_gst'),
+        db.func.sum(Invoice.cgst + Invoice.sgst + Invoice.igst).label('total_gst_amount')
+    ).filter(
+        Invoice.date.between(from_date, to_date),
+        Invoice.vendor_type == 'supplier'
+    ).group_by(
+        Invoice.material
+    ).order_by(
+        db.func.sum(Invoice.amount_without_gst).desc()
+    ).all()
+
+    amount_by_material_data = [{
+        'material': item[0] if item[0] else 'Unknown',
+        'total_amount_without_gst': float(item[1]) if item[1] else 0,
+        'total_gst_amount': float(item[2]) if item[2] else 0,
+        'total_amount_with_gst': float(item[1] + item[2]) if item[1] and item[2] is not None else float(item[1]) if item[1] else 0
+    } for item in amount_by_material_data if item[1] > 0]
+
+    # Add amount_by_material_data to the render_template call:
     return render_template('charts.html',
-                         from_date=from_date.strftime('%d/%m/%Y'),
-                         to_date=to_date.strftime('%d/%m/%Y'),
-                         total_suppliers=total_suppliers,
-                         total_purchases=total_purchases,
-                         supplier_data=supplier_data,
-                         transporter_data=transporter_data,
-                         material_data=material_data,
-                         quantity_by_unit_data=quantity_by_unit_data)
+                        from_date=from_date.strftime('%d/%m/%Y'),
+                        to_date=to_date.strftime('%d/%m/%Y'),
+                        total_suppliers=total_suppliers,
+                        total_purchases=total_purchases,
+                        supplier_data=supplier_data,
+                        transporter_data=transporter_data,
+                        material_data=material_data,
+                        quantity_by_unit_data=quantity_by_unit_data,
+                        amount_by_material_data=amount_by_material_data)
     
 
 @app.route('/edit_invoice/<int:invoice_id>', methods=['GET'])
