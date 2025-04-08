@@ -357,13 +357,10 @@ $(document).ready(function() {
                 width: 1
             }
         },
-        text: sortedTotalAmounts.map(amount => `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
-        textposition: 'top',
-        textfont: {
-            size: 12,
-            color: '#000000'
-        }
-    };
+        text: sortedGstAmounts.map(amount => `GST Amount: ₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
+        textposition: 'none', // Disable text on the bar itself to avoid confusion with the total label
+        hovertemplate: `%{text}<extra></extra>` // Use custom hover template to control popup content
+            };
 
     const amountMaterialLayout = {
         title: 'Amount vs Material (With GST Breakdown)',
