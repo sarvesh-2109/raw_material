@@ -335,7 +335,7 @@ def format_currency(value):
     else:
         return f"₹{value:,.2f}"
 
-# Add this route after the existing routes
+
 @app.route('/charts')
 def charts_dashboard():
     # Get date range from query parameters or database
@@ -403,7 +403,7 @@ def charts_dashboard():
         'total_amount': float(item[1]) if item[1] else 0
     } for item in transporter_data]
     
-    # Material distribution (for pie chart)
+    # Material distribution (by total value)
     material_data = db.session.query(
         Invoice.material,
         db.func.sum(Invoice.amount_without_gst).label('total_value'),
@@ -446,7 +446,7 @@ def charts_dashboard():
             'material': item[0] if item[0] else 'Unknown',
             'total_quantity': float(item[1]) if item[1] else 0
         } for item in unit_data if item[1] > 0]  # Only include non-zero quantities
-    
+
     return render_template('charts.html',
                          from_date=from_date.strftime('%d/%m/%Y'),
                          to_date=to_date.strftime('%d/%m/%Y'),

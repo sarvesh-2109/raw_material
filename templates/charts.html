@@ -67,28 +67,70 @@
     </div>
 
     <!-- Material Distribution Chart -->
-    <div class="card mb-4">
+    <!-- <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Material Distribution by Total Value</h5>
             <div id="materialChart"></div>
         </div>
-    </div>
+    </div> -->
 
-    <!-- Quantity vs Material by Unit Charts -->
-    {% for unit, data in quantity_by_unit_data.items() %}
-        {% if data %}
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Quantity vs Material (Unit: {{ unit }})</h5>
-                <div id="quantityChart_{{ unit|replace(' ', '_') }}"></div>
+    <!-- Quantity vs Material Chart with Dropdown -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Quantity vs Material by Unit</h5>
+            <div class="mb-3">
+                <select id="unitSelector" class="custom-dropdown">
+                    {% for unit in quantity_by_unit_data.keys() %}
+                        {% if quantity_by_unit_data[unit] %}
+                            <option value="{{ unit }}">{{ unit }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
             </div>
+            <div id="quantityChart"></div>
         </div>
-        {% endif %}
-    {% endfor %}
+    </div>
 </div>
 {% endblock %}
 
 {% block script %}
+<style>
+    .custom-dropdown {
+        display: inline-block;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        background-color: #007bff; /* Bootstrap primary blue */
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        width: 150px; /* Fixed width for consistency */
+        appearance: none; /* Remove default dropdown arrow */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E"); /* Custom arrow */
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 12px;
+    }
+
+    .custom-dropdown:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .custom-dropdown:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); /* Focus ring */
+    }
+
+    .custom-dropdown option {
+        background-color: #fff;
+        color: #333;
+    }
+</style>
+
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
 $(document).ready(function() {
@@ -181,76 +223,84 @@ $(document).ready(function() {
     Plotly.newPlot('transporterChart', [transporterTrace], transporterLayout);
 
     // Material Distribution Chart (Pie)
-    const materialData = JSON.parse('{{ material_data|tojson|safe }}');
-    const materialNames = materialData.map(item => item.material);
-    const materialValues = materialData.map(item => item.total_value);
+    // const materialData = JSON.parse('{{ material_data|tojson|safe }}');
+    // const materialNames = materialData.map(item => item.material);
+    // const materialValues = materialData.map(item => item.total_value);
 
-    const materialTrace = {
-        labels: materialNames,
-        values: materialValues,
-        type: 'pie',
-        textinfo: 'label+percent',
-        textposition: 'inside',
-        marker: {
-            colors: [
-                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-            ]
-        }
-    };
+    // const materialTrace = {
+    //     labels: materialNames,
+    //     values: materialValues,
+    //     type: 'pie',
+    //     textinfo: 'label+percent',
+    //     textposition: 'inside',
+    //     marker: {
+    //         colors: [
+    //             '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    //             '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    //         ]
+    //     }
+    // };
 
-    const materialLayout = {
-        title: 'Material Distribution by Total Value (₹)',
-        height: 500,
-        showlegend: true
-    };
+    // const materialLayout = {
+    //     title: 'Material Distribution by Total Value (₹)',
+    //     height: 500,
+    //     showlegend: true
+    // };
 
-    Plotly.newPlot('materialChart', [materialTrace], materialLayout);
+    // Plotly.newPlot('materialChart', [materialTrace], materialLayout);
 
-    // Quantity vs Material by Unit Charts
+    // Quantity vs Material Chart with Dropdown
     const quantityByUnitData = JSON.parse('{{ quantity_by_unit_data|tojson|safe }}');
-    Object.keys(quantityByUnitData).forEach(unit => {
-        const unitData = quantityByUnitData[unit];
-        if (unitData.length > 0) {
-            const materials = unitData.map(item => item.material);
-            const quantities = unitData.map(item => item.total_quantity);
 
-            const sortedUnitData = materials.map((material, index) => ({
-                material,
-                quantity: quantities[index]
-            })).sort((a, b) => b.quantity - a.quantity);
+    function updateQuantityChart(unit) {
+        const unitData = quantityByUnitData[unit] || [];
+        const materials = unitData.map(item => item.material);
+        const quantities = unitData.map(item => item.total_quantity);
 
-            const sortedMaterials = sortedUnitData.map(item => item.material);
-            const sortedQuantities = sortedUnitData.map(item => item.quantity);
+        const sortedUnitData = materials.map((material, index) => ({
+            material,
+            quantity: quantities[index]
+        })).sort((a, b) => b.quantity - a.quantity);
 
-            const trace = {
-                x: sortedMaterials,
-                y: sortedQuantities,
-                type: 'bar',
-                marker: {
-                    color: 'rgba(44, 160, 44, 0.7)',
-                    line: {
-                        color: 'rgba(44, 160, 44, 1.0)',
-                        width: 1
-                    }
+        const sortedMaterials = sortedUnitData.map(item => item.material);
+        const sortedQuantities = sortedUnitData.map(item => item.quantity);
+
+        const trace = {
+            x: sortedMaterials,
+            y: sortedQuantities,
+            type: 'bar',
+            marker: {
+                color: 'rgba(44, 160, 44, 0.7)',
+                line: {
+                    color: 'rgba(44, 160, 44, 1.0)',
+                    width: 1
                 }
-            };
+            }
+        };
 
-            const layout = {
-                title: `Quantity vs Material (Unit: ${unit})`,
-                xaxis: {
-                    title: 'Material',
-                    tickangle: -45
-                },
-                yaxis: {
-                    title: `Total Quantity (${unit})`,
-                    tickformat: ',.2f'
-                },
-                margin: { b: 100 }
-            };
+        const layout = {
+            title: `Quantity vs Material (Unit: ${unit})`,
+            xaxis: {
+                title: 'Material',
+                tickangle: -45
+            },
+            yaxis: {
+                title: `Total Quantity (${unit})`,
+                tickformat: ',.2f'
+            },
+            margin: { b: 100 }
+        };
 
-            Plotly.newPlot(`quantityChart_${unit.replace(' ', '_')}`, [trace], layout);
-        }
+        Plotly.newPlot('quantityChart', [trace], layout);
+    }
+
+    // Initial chart with first unit
+    const firstUnit = $('#unitSelector').val();
+    if (firstUnit) updateQuantityChart(firstUnit);
+
+    // Update chart on unit selection
+    $('#unitSelector').on('change', function() {
+        updateQuantityChart($(this).val());
     });
 
     // Handle date filter form submission
