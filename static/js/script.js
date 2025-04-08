@@ -228,9 +228,6 @@ function calculateGST() {
     $('#cgst').val(cgst.toFixed(2)).trigger('input');
     $('#sgst').val(sgst.toFixed(2)).trigger('input');
     $('#igst').val(igst.toFixed(2)).trigger('input');
-    
-    // Debugging - log the values to console
-    console.log('GST Calculated:', {cgst, sgst, igst});
 }
 
 function calculateTransportGST() {
@@ -246,7 +243,6 @@ function calculateTransportGST() {
     
     $('#transport_cgst').val(transportCGST.toFixed(2)).trigger('input');
     $('#transport_sgst').val(transportSGST.toFixed(2)).trigger('input');
-    console.log('Transport GST Calculated:', {transportCGST, transportSGST});
 }
 
 function calculateLoadingGST() {
@@ -262,7 +258,6 @@ function calculateLoadingGST() {
     
     $('#loading_cgst').val(loadingCGST.toFixed(2)).trigger('input');
     $('#loading_sgst').val(loadingSGST.toFixed(2)).trigger('input');
-    console.log('Loading GST Calculated:', {loadingCGST, loadingSGST});
 }
 
 function calculateTotals() {

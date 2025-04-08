@@ -218,63 +218,66 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Edit button click handler
-editBtn.addEventListener('click', function() {
-    if (this.disabled) return;
-    
-    const checkedBox = document.querySelector('.invoice-checkbox:checked');
-    if (!checkedBox) return;
-    
-    const invoiceId = checkedBox.value;
-    
-    // Load the edit form via AJAX
-    fetch(`/edit_invoice/${invoiceId}`)
-        .then(response => response.text())
-        .then(html => {
-            const modalBody = document.querySelector('#editModal .modal-body');
-            modalBody.innerHTML = html;
-            
-            // Extract and execute script tags
-            const scripts = modalBody.querySelectorAll('script');
-            scripts.forEach(script => {
-                const newScript = document.createElement('script');
-                if (script.src) {
-                    newScript.src = script.src;
-                } else {
-                    newScript.textContent = script.textContent;
+    editBtn.addEventListener('click', function() {
+        if (this.disabled) return;
+        
+        const checkedBox = document.querySelector('.invoice-checkbox:checked');
+        if (!checkedBox) return;
+        
+        const invoiceId = checkedBox.value;
+        
+        // Load the edit form via AJAX
+        fetch(`/edit_invoice/${invoiceId}`)
+            .then(response => response.text())
+            .then(html => {
+                const modalBody = document.querySelector('#editModal .modal-body');
+                modalBody.innerHTML = html;
+                
+                // Extract and execute script tags
+                const scripts = modalBody.querySelectorAll('script');
+                scripts.forEach(script => {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.body.appendChild(newScript).parentNode.removeChild(newScript);
+                });
+                
+                // Attach the saveChanges event listener AFTER the modal content is loaded
+                const saveChangesBtn = document.getElementById('saveChanges');
+                if (saveChangesBtn) {
+                    saveChangesBtn.addEventListener('click', function() {
+                        const form = document.querySelector('#editModal form');
+                        if (!form) return;
+                        
+                        const formData = new FormData(form);
+                        
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                location.reload(); // Refresh the page to see changes
+                            } else {
+                                alert('Error saving changes');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error saving changes:', error);
+                            alert('Error saving changes');
+                        });
+                    });
                 }
-                document.body.appendChild(newScript).parentNode.removeChild(newScript);
+                
+                editModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading edit form:', error);
+                alert('Error loading edit form');
             });
-            
-            editModal.show();
-        })
-        .catch(error => {
-            console.error('Error loading edit form:', error);
-            alert('Error loading edit form');
-        });
-    });
-    
-    // Save changes handler
-    document.getElementById('saveChanges').addEventListener('click', function() {
-        const form = document.querySelector('#editModal form');
-        if (!form) return;
-        
-        const formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.ok) {
-                location.reload(); // Refresh the page to see changes
-            } else {
-                alert('Error saving changes');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving changes:', error);
-            alert('Error saving changes');
-        });
     });
     
     // Delete button click handler
@@ -289,7 +292,7 @@ editBtn.addEventListener('click', function() {
     document.getElementById('confirmDelete').addEventListener('click', function() {
         const checkedBoxes = document.querySelectorAll('.invoice-checkbox:checked');
         const invoiceIds = Array.from(checkedBoxes).map(checkbox => checkbox.value);
-        
+
         fetch('/delete_invoices', {
             method: 'POST',
             headers: {
@@ -299,14 +302,15 @@ editBtn.addEventListener('click', function() {
         })
         .then(response => {
             if (response.ok) {
-                location.reload(); // Refresh the page to see changes
+                deleteModal.hide();
+                location.reload();
             } else {
-                alert('Error deleting invoices');
+                return response.json().then(data => { throw new Error(data.error || 'Unknown error') });
             }
         })
         .catch(error => {
             console.error('Error deleting invoices:', error);
-            alert('Error deleting invoices');
+            alert('Error deleting invoices: ' + error.message);
         });
     });
 });
