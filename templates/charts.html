@@ -148,6 +148,12 @@
         width: 100%;
     }
     
+    .chart-card-expanded .chart-container {
+        height: calc(80% - 50px); /* Adjust height to 80% of card minus title space */
+        width: 95%; /* Slightly less than full width for padding */
+        margin: 0 auto; /* Center the chart */
+    }
+    
     .bg-gradient-primary {
         background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
     }
@@ -221,7 +227,7 @@
             },
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
-            margin: { t: 60, b: 120, l: 80, r: 40 }, // Increased bottom margin for labels
+            margin: { t: 60, b: 120, l: 80, r: 40 },
             hovermode: 'closest',
             hoverlabel: {
                 bgcolor: '#fff',
@@ -236,10 +242,10 @@
                 showgrid: true,
                 gridcolor: '#f0f0f0',
                 linecolor: '#e0e0e0',
-                tickangle: -30, // Reduced angle for better readability
-                automargin: true, // Let Plotly handle margins
+                tickangle: -30,
+                automargin: true,
                 tickfont: {
-                    size: 10 // Smaller font for x-axis labels
+                    size: 10
                 }
             },
             yaxis: {
@@ -257,16 +263,18 @@
                 x: 1
             }
         };
+
+        const plotlyConfig = { displayModeBar: false };
     
         // Supplier Chart with improved labels
         const supplierData = JSON.parse('{{ supplier_data|tojson|safe }}');
-        const supplierNames = supplierData.map(item => wrapLabel(item.supplier_name, 20)); // Wrap long names
+        const supplierNames = supplierData.map(item => wrapLabel(item.supplier_name, 20));
         const supplierAmounts = supplierData.map(item => item.total_amount);
     
         const sortedSupplierData = supplierNames.map((name, index) => ({
             name,
             amount: supplierAmounts[index],
-            fullName: supplierData[index].supplier_name // Keep full name for hover
+            fullName: supplierData[index].supplier_name
         })).sort((a, b) => b.amount - a.amount);
     
         const sortedSupplierNames = sortedSupplierData.map(item => item.name);
@@ -284,7 +292,7 @@
                 },
                 opacity: 0.8
             },
-            customdata: sortedSupplierData.map(item => item.fullName), // Store full names
+            customdata: sortedSupplierData.map(item => item.fullName),
             hovertemplate: '<b>%{customdata}</b><br>Amount: ₹%{y:,.2f}<extra></extra>',
             name: 'Amount'
         };
@@ -297,7 +305,7 @@
                     size: 16,
                     color: '#333'
                 },
-                y: 0.95 // Bring title closer
+                y: 0.95
             },
             xaxis: {
                 ...modernLayout.xaxis,
@@ -306,7 +314,7 @@
                     font: {
                         size: 12
                     },
-                    standoff: 15 // Add space between axis and title
+                    standoff: 15
                 },
                 tickmode: 'array',
                 tickvals: sortedSupplierNames,
@@ -324,7 +332,7 @@
             }
         };
     
-        Plotly.newPlot('supplierChart', [supplierTrace], supplierLayout);
+        Plotly.newPlot('supplierChart', [supplierTrace], supplierLayout, plotlyConfig);
     
         // Transporter Chart with improved labels
         const transporterData = JSON.parse('{{ transporter_data|tojson|safe }}');
@@ -392,7 +400,7 @@
             }
         };
     
-        Plotly.newPlot('transporterChart', [transporterTrace], transporterLayout);
+        Plotly.newPlot('transporterChart', [transporterTrace], transporterLayout, plotlyConfig);
     
         // Quantity vs Material Chart with improved labels
         const quantityByUnitData = JSON.parse('{{ quantity_by_unit_data|tojson|safe }}');
@@ -463,7 +471,7 @@
                 }
             };
     
-            Plotly.newPlot('quantityChart', [trace], layout);
+            Plotly.newPlot('quantityChart', [trace], layout, plotlyConfig);
         }
     
         // Initial chart with first unit
@@ -571,7 +579,7 @@
                 showarrow: false,
                 yshift: 10,
                 font: {
-                    size: 10, // Smaller font for annotations
+                    size: 10,
                     color: '#333'
                 },
                 bgcolor: 'rgba(255, 255, 255, 0.8)',
@@ -582,7 +590,7 @@
             }))
         };
     
-        Plotly.newPlot('amountMaterialChart', [traceWithoutGst, traceGst], amountMaterialLayout);
+        Plotly.newPlot('amountMaterialChart', [traceWithoutGst, traceGst], amountMaterialLayout, plotlyConfig);
     
         // Handle date filter form submission
         $('#dateFilterForm').on('submit', function(e) {
@@ -638,6 +646,311 @@
             Plotly.Plots.resize('transporterChart');
             Plotly.Plots.resize('quantityChart');
             Plotly.Plots.resize('amountMaterialChart');
+        });
+    });
+    $(document).ready(function() {
+        // Variables to track animation state
+        let expandedCard = null;
+        let isAnimating = false;
+        const animationDuration = 400;
+        const chartContainers = $('.chart-container');
+        const chartCards = $('.chart-container').closest('.card');
+        
+        // Store original positioning and dimensions for restoration
+        chartCards.each(function() {
+            const $card = $(this);
+            $card.data('originalHeight', $card.outerHeight());
+            $card.data('originalPosition', $card.offset());
+            $card.data('originalWidth', $card.outerWidth());
+        });
+        
+        // Add CSS classes and transition properties
+        $('<style>')
+            .prop('type', 'text/css')
+            .html(`
+                .chart-card-expanding, .chart-card-contracting {
+                    transition: all ${animationDuration}ms ease;
+                    z-index: 1000;
+                }
+                .chart-card-expanded {
+                    position: fixed;
+                    z-index: 1000;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+                }
+                .card-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    z-index: 999;
+                    opacity: 0;
+                    transition: opacity ${animationDuration}ms ease;
+                    pointer-events: none;
+                }
+                .card-overlay.visible {
+                    opacity: 1;
+                    pointer-events: all;
+                }
+                .chart-container {
+                    position: relative;
+                }
+                
+                .chart-expand-button {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    z-index: 10;
+                    background: rgba(255, 255, 255, 0.8);
+                    border-radius: 50%;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    opacity: 0;
+                    transition: opacity 0.2s ease;
+                }
+                
+                .chart-container:hover .chart-expand-button {
+                    opacity: 1;
+                }
+                
+                .chart-expand-button i {
+                    font-size: 14px;
+                    color: #333;
+                }
+            `)
+            .appendTo('head');
+    
+        // Create overlay div
+        $('<div class="card-overlay"></div>').appendTo('body');
+        const $overlay = $('.card-overlay');
+        
+        // Add expand buttons to each chart container
+        chartContainers.each(function() {
+            $(this).append('<div class="chart-expand-button"><i class="fas fa-expand"></i></div>');
+        });
+        
+        // Click handler for expand buttons
+        $('.chart-expand-button').on('click', function(e) {
+            e.stopPropagation();
+            const $card = $(this).closest('.card');
+            expandCard($card);
+        });
+        
+        // Handle clicking on the card itself
+        chartCards.on('click', function() {
+            const $card = $(this);
+            if (!isAnimating && !$card.hasClass('chart-card-expanded')) {
+                expandCard($card);
+            }
+        });
+        
+        // Handle clicking outside or on close button to contract
+        $overlay.on('click', function() {
+            if (expandedCard && !isAnimating) {
+                contractCard(expandedCard);
+            }
+        });
+        
+        // ESC key to close expanded card
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && expandedCard && !isAnimating) {
+                contractCard(expandedCard);
+            }
+        });
+        
+        function expandCard($card) {
+            if (isAnimating || expandedCard) return;
+            
+            isAnimating = true;
+            expandedCard = $card;
+            
+            // Store original data
+            const originalOffset = $card.offset();
+            const originalWidth = $card.outerWidth();
+            const originalHeight = $card.outerHeight();
+            
+            // Calculate new dimensions (80% of viewport)
+            const windowWidth = $(window).width();
+            const windowHeight = $(window).height();
+            const newWidth = windowWidth * 0.8;
+            const newHeight = windowHeight * 0.8;
+            const newLeft = (windowWidth - newWidth) / 2;
+            const newTop = (windowHeight - newHeight) / 2;
+            
+            // Add expanding class
+            $card.addClass('chart-card-expanding');
+            
+            // Set fixed position with original dimensions
+            $card.css({
+                position: 'fixed',
+                top: originalOffset.top,
+                left: originalOffset.left,
+                width: originalWidth,
+                height: originalHeight
+            });
+            
+            // Show overlay
+            $overlay.addClass('visible');
+            
+            // Animate to new position and size
+            setTimeout(() => {
+                $card.css({
+                    top: newTop,
+                    left: newLeft,
+                    width: newWidth,
+                    height: newHeight
+                });
+                
+                // Update the chart to fill the new space
+                const chartId = $card.find('.chart-container').attr('id');
+                if (chartId) {
+                    setTimeout(() => {
+                        Plotly.Plots.resize(chartId);
+                    }, animationDuration / 2);
+                }
+                
+                // When animation completes
+                setTimeout(() => {
+                    $card.removeClass('chart-card-expanding').addClass('chart-card-expanded');
+                    isAnimating = false;
+                    
+                    // Add a close button if it doesn't exist
+                    if ($card.find('.card-close-button').length === 0) {
+                        $card.append('<div class="chart-expand-button" style="opacity:1"><i class="fas fa-compress"></i></div>');
+                        $card.find('.chart-expand-button').off('click').on('click', function(e) {
+                            e.stopPropagation();
+                            contractCard($card);
+                        });
+                    }
+                    
+                    // Force resize chart to ensure it fills the new container
+                    if (chartId) {
+                        Plotly.Plots.resize(chartId);
+                    }
+                }, animationDuration);
+            }, 20);
+        }
+        
+        function contractCard($card) {
+            if (isAnimating) return;
+            
+            isAnimating = true;
+            
+            // Get original dimensions and position
+            const originalOffset = {
+                top: $card.data('originalPosition').top,
+                left: $card.data('originalPosition').left
+            };
+            const originalWidth = $card.data('originalWidth');
+            const originalHeight = $card.data('originalHeight');
+            
+            // Add contracting class
+            $card.removeClass('chart-card-expanded').addClass('chart-card-contracting');
+            
+            // Hide overlay
+            $overlay.removeClass('visible');
+            
+            // Animate back to original position and size
+            $card.css({
+                top: originalOffset.top,
+                left: originalOffset.left,
+                width: originalWidth,
+                height: originalHeight
+            });
+            
+            // Update the chart to fill the original space
+            const chartId = $card.find('.chart-container').attr('id');
+            if (chartId) {
+                setTimeout(() => {
+                    // Reset chart container height
+                    $card.find('.chart-container').css({ height: '300px', width: '100%' });
+                    Plotly.Plots.resize(chartId);
+                }, animationDuration / 2);
+            }
+            
+            // When animation completes
+            setTimeout(() => {
+                $card.removeClass('chart-card-contracting');
+                $card.css({
+                    position: '',
+                    top: '',
+                    left: '',
+                    width: '',
+                    height: ''
+                });
+                
+                // Remove close button
+                $card.find('.chart-expand-button').remove();
+                $card.find('.chart-container').append('<div class="chart-expand-button"><i class="fas fa-expand"></i></div>');
+                $card.find('.chart-expand-button').on('click', function(e) {
+                    e.stopPropagation();
+                    expandCard($card.closest('.card'));
+                });
+                
+                isAnimating = false;
+                expandedCard = null;
+                
+                // Force resize all charts to ensure proper rendering
+                $('.chart-container').each(function() {
+                    const id = $(this).attr('id');
+                    if (id) Plotly.Plots.resize(id);
+                });
+            }, animationDuration);
+        }
+        
+        // Update resize handler to account for expanded cards
+        const originalHandleResize = window.handleResize;
+        window.handleResize = function() {
+            if (!expandedCard) {
+                // Only call original resize function if no card is expanded
+                if (typeof originalHandleResize === 'function') {
+                    originalHandleResize();
+                }
+            } else {
+                // If a card is expanded, make sure it stays centered
+                const windowWidth = $(window).width();
+                const windowHeight = $(window).height();
+                const newWidth = windowWidth * 0.8;
+                const newHeight = windowHeight * 0.8;
+                const newLeft = (windowWidth - newWidth) / 2;
+                const newTop = (windowHeight - newHeight) / 2;
+                
+                expandedCard.css({
+                    top: newTop,
+                    left: newLeft,
+                    width: newWidth,
+                    height: newHeight
+                });
+                
+                // Resize chart in expanded card
+                const chartId = expandedCard.find('.chart-container').attr('id');
+                if (chartId) {
+                    Plotly.Plots.resize(chartId);
+                }
+            }
+        };
+        
+        // Handle window resize events
+        $(window).on('resize', function() {
+            // Store new original positions for all cards
+            if (!expandedCard) {
+                chartCards.each(function() {
+                    const $card = $(this);
+                    $card.data('originalPosition', $card.offset());
+                    $card.data('originalWidth', $card.outerWidth());
+                    $card.data('originalHeight', $card.outerHeight());
+                });
+            }
+            
+            if (typeof window.handleResize === 'function') {
+                window.handleResize();
+            }
         });
     });
 </script>
