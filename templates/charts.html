@@ -10,7 +10,7 @@
     </div>
 
     <!-- Date Filter -->
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <form id="dateFilterForm" class="row g-3">
                 <div class="col-md-4">
@@ -32,376 +32,613 @@
 
     <!-- Summary Cards -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card text-white bg-primary h-100">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="card text-white bg-gradient-primary h-100 border-0 shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Total Suppliers</h5>
-                    <h2 class="card-text">{{ total_suppliers }}</h2>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Total Suppliers</h5>
+                            <h2 class="card-text mb-0">{{ total_suppliers }}</h2>
+                        </div>
+                        <div class="icon-circle bg-white-10">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card text-white bg-success h-100">
+            <div class="card text-white bg-gradient-success h-100 border-0 shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Total Purchases</h5>
-                    <h2 class="card-text">{{ total_purchases|format_currency }}</h2>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Total Purchases</h5>
+                            <h2 class="card-text mb-0">{{ total_purchases|format_currency }}</h2>
+                        </div>
+                        <div class="icon-circle bg-white-10">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Total Amount by Suppliers Chart -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Total Amount by Suppliers</h5>
-            <div id="supplierChart"></div>
-        </div>
-    </div>
-
-    <!-- Total Amount by Transporters Chart -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Total Amount by Transporters</h5>
-            <div id="transporterChart"></div>
-        </div>
-    </div>
-
-    <!-- Material Distribution Chart -->
-    <!-- <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Material Distribution by Total Value</h5>
-            <div id="materialChart"></div>
-        </div>
-    </div> -->
-
-    <!-- Quantity vs Material Chart with Dropdown -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Quantity vs Material by Unit</h5>
-            <div class="mb-3">
-                <select id="unitSelector" class="custom-dropdown">
-                    {% for unit in quantity_by_unit_data.keys() %}
-                        {% if quantity_by_unit_data[unit] %}
-                            <option value="{{ unit }}">{{ unit }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
+    <!-- Charts Section -->
+    <div class="row">
+        <!-- Total Amount by Suppliers Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                        <span>Total Amount by Suppliers</span>
+                        <i class="fas fa-industry text-primary"></i>
+                    </h5>
+                    <div id="supplierChart" class="chart-container"></div>
+                </div>
             </div>
-            <div id="quantityChart"></div>
+        </div>
+
+        <!-- Total Amount by Transporters Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                        <span>Total Amount by Transporters</span>
+                        <i class="fas fa-shipping-fast text-success"></i>
+                    </h5>
+                    <div id="transporterChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quantity vs Material Chart with Dropdown -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                        <span>Quantity vs Material by Unit</span>
+                        <i class="fas fa-balance-scale text-info"></i>
+                    </h5>
+                    <div class="mb-3">
+                        <select id="unitSelector" class="form-select">
+                            {% for unit in quantity_by_unit_data.keys() %}
+                                {% if quantity_by_unit_data[unit] %}
+                                    <option value="{{ unit }}">{{ unit }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="quantityChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount vs Material Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title d-flex justify-content-between align-items-center">
+                        <span>Amount vs Material (With GST Breakdown)</span>
+                        <i class="fas fa-chart-pie text-warning"></i>
+                    </h5>
+                    <div id="amountMaterialChart" class="chart-container"></div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Amount vs Material (With GST Breakdown)</h5>
-            <div id="amountMaterialChart"></div>
-        </div>
-    </div>
-
 </div>
 {% endblock %}
 
 {% block script %}
 <style>
-    .custom-dropdown {
+    /* Modern styling for charts and cards */
+    .card {
+        border-radius: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .chart-container {
+        height: 300px;
+        width: 100%;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%);
+    }
+    
+    .icon-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .bg-white-10 {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-select {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        padding: 8px 15px;
+    }
+    
+    .form-select:focus {
+        border-color: #3a7bd5;
+        box-shadow: 0 0 0 0.25rem rgba(58, 123, 213, 0.25);
+    }
+    .js-plotly-plot .xtick text {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100px;
+        overflow: hidden;
         display: inline-block;
-        padding: 8px 16px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #fff;
-        background-color: #007bff; /* Bootstrap primary blue */
-        border: none;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        width: 150px; /* Fixed width for consistency */
-        appearance: none; /* Remove default dropdown arrow */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E"); /* Custom arrow */
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        background-size: 12px;
     }
-
-    .custom-dropdown:hover {
-        background-color: #0056b3; /* Darker blue on hover */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .custom-dropdown:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); /* Focus ring */
-    }
-
-    .custom-dropdown option {
-        background-color: #fff;
-        color: #333;
+    
+    @media (max-width: 768px) {
+        .js-plotly-plot .xtick text {
+            max-width: 60px;
+            font-size: 10px;
+        }
     }
 </style>
 
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Initialize date pickers
-    $('#fromDate, #toDate').datepicker({ 
-        format: 'dd/mm/yyyy', 
-        autoclose: true
-    });
-
-    // Supplier Chart
-    const supplierData = JSON.parse('{{ supplier_data|tojson|safe }}');
-    const supplierNames = supplierData.map(item => item.supplier_name);
-    const supplierAmounts = supplierData.map(item => item.total_amount);
-
-    const sortedSupplierData = supplierNames.map((name, index) => ({
-        name,
-        amount: supplierAmounts[index]
-    })).sort((a, b) => b.amount - a.amount);
-
-    const sortedSupplierNames = sortedSupplierData.map(item => item.name);
-    const sortedSupplierAmounts = sortedSupplierData.map(item => item.amount);
-
-    const supplierTrace = {
-        x: sortedSupplierNames,
-        y: sortedSupplierAmounts,
-        type: 'bar',
-        marker: {
-            color: 'rgba(55, 128, 191, 0.7)',
-            line: {
-                color: 'rgba(55, 128, 191, 1.0)',
-                width: 1
-            }
+    $(document).ready(function() {
+        // Initialize date pickers
+        $('#fromDate, #toDate').datepicker({ 
+            format: 'dd/mm/yyyy', 
+            autoclose: true
+        });
+    
+        // Common function to wrap text labels
+        function wrapLabel(text, maxLength = 15) {
+            if (!text) return '';
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength) + '...';
         }
-    };
-
-    const supplierLayout = {
-        title: 'Total Amount by Suppliers',
-        xaxis: {
-            title: 'Supplier Name',
-            tickangle: -45
-        },
-        yaxis: {
-            title: 'Total Amount (₹)',
-            tickformat: ',.2f'
-        },
-        margin: { b: 100 }
-    };
-
-    Plotly.newPlot('supplierChart', [supplierTrace], supplierLayout);
-
-    // Transporter Chart
-    const transporterData = JSON.parse('{{ transporter_data|tojson|safe }}');
-    const transporterNames = transporterData.map(item => item.transporter_name);
-    const transporterAmounts = transporterData.map(item => item.total_amount);
-
-    const sortedTransporterData = transporterNames.map((name, index) => ({
-        name,
-        amount: transporterAmounts[index]
-    })).sort((a, b) => b.amount - a.amount);
-
-    const sortedTransporterNames = sortedTransporterData.map(item => item.name);
-    const sortedTransporterAmounts = sortedTransporterData.map(item => item.amount);
-
-    const transporterTrace = {
-        x: sortedTransporterNames,
-        y: sortedTransporterAmounts,
-        type: 'bar',
-        marker: {
-            color: 'rgba(255, 153, 51, 0.7)',
-            line: {
-                color: 'rgba(255, 153, 51, 1.0)',
-                width: 1
+    
+        // Enhanced modern layout with better label handling
+        const modernLayout = {
+            font: {
+                family: 'Arial, sans-serif',
+                size: 12,
+                color: '#333'
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { t: 60, b: 120, l: 80, r: 40 }, // Increased bottom margin for labels
+            hovermode: 'closest',
+            hoverlabel: {
+                bgcolor: '#fff',
+                bordercolor: '#e0e0e0',
+                font: {
+                    family: 'Arial, sans-serif',
+                    size: 12,
+                    color: '#333'
+                }
+            },
+            xaxis: {
+                showgrid: true,
+                gridcolor: '#f0f0f0',
+                linecolor: '#e0e0e0',
+                tickangle: -30, // Reduced angle for better readability
+                automargin: true, // Let Plotly handle margins
+                tickfont: {
+                    size: 10 // Smaller font for x-axis labels
+                }
+            },
+            yaxis: {
+                showgrid: true,
+                gridcolor: '#f0f0f0',
+                linecolor: '#e0e0e0',
+                tickformat: ',.2f',
+                automargin: true
+            },
+            legend: {
+                orientation: 'h',
+                yanchor: 'bottom',
+                y: 1.02,
+                xanchor: 'right',
+                x: 1
             }
-        }
-    };
-
-    const transporterLayout = {
-        title: 'Total Amount by Transporters',
-        xaxis: {
-            title: 'Transporter Name',
-            tickangle: -45
-        },
-        yaxis: {
-            title: 'Total Amount (₹)',
-            tickformat: ',.2f'
-        },
-        margin: { b: 100 }
-    };
-
-    Plotly.newPlot('transporterChart', [transporterTrace], transporterLayout);
-
-    // Material Distribution Chart (Pie)
-    // const materialData = JSON.parse('{{ material_data|tojson|safe }}');
-    // const materialNames = materialData.map(item => item.material);
-    // const materialValues = materialData.map(item => item.total_value);
-
-    // const materialTrace = {
-    //     labels: materialNames,
-    //     values: materialValues,
-    //     type: 'pie',
-    //     textinfo: 'label+percent',
-    //     textposition: 'inside',
-    //     marker: {
-    //         colors: [
-    //             '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    //             '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-    //         ]
-    //     }
-    // };
-
-    // const materialLayout = {
-    //     title: 'Material Distribution by Total Value (₹)',
-    //     height: 500,
-    //     showlegend: true
-    // };
-
-    // Plotly.newPlot('materialChart', [materialTrace], materialLayout);
-
-    // Quantity vs Material Chart with Dropdown
-    const quantityByUnitData = JSON.parse('{{ quantity_by_unit_data|tojson|safe }}');
-
-    function updateQuantityChart(unit) {
-        const unitData = quantityByUnitData[unit] || [];
-        const materials = unitData.map(item => item.material);
-        const quantities = unitData.map(item => item.total_quantity);
-
-        const sortedUnitData = materials.map((material, index) => ({
-            material,
-            quantity: quantities[index]
-        })).sort((a, b) => b.quantity - a.quantity);
-
-        const sortedMaterials = sortedUnitData.map(item => item.material);
-        const sortedQuantities = sortedUnitData.map(item => item.quantity);
-
-        const trace = {
-            x: sortedMaterials,
-            y: sortedQuantities,
+        };
+    
+        // Supplier Chart with improved labels
+        const supplierData = JSON.parse('{{ supplier_data|tojson|safe }}');
+        const supplierNames = supplierData.map(item => wrapLabel(item.supplier_name, 20)); // Wrap long names
+        const supplierAmounts = supplierData.map(item => item.total_amount);
+    
+        const sortedSupplierData = supplierNames.map((name, index) => ({
+            name,
+            amount: supplierAmounts[index],
+            fullName: supplierData[index].supplier_name // Keep full name for hover
+        })).sort((a, b) => b.amount - a.amount);
+    
+        const sortedSupplierNames = sortedSupplierData.map(item => item.name);
+        const sortedSupplierAmounts = sortedSupplierData.map(item => item.amount);
+    
+        const supplierTrace = {
+            x: sortedSupplierNames,
+            y: sortedSupplierAmounts,
             type: 'bar',
             marker: {
-                color: 'rgba(44, 160, 44, 0.7)',
+                color: '#3a7bd5',
                 line: {
-                    color: 'rgba(44, 160, 44, 1.0)',
+                    color: '#2a6bc4',
                     width: 1
+                },
+                opacity: 0.8
+            },
+            customdata: sortedSupplierData.map(item => item.fullName), // Store full names
+            hovertemplate: '<b>%{customdata}</b><br>Amount: ₹%{y:,.2f}<extra></extra>',
+            name: 'Amount'
+        };
+    
+        const supplierLayout = {
+            ...modernLayout,
+            title: {
+                text: 'Total Amount by Suppliers',
+                font: {
+                    size: 16,
+                    color: '#333'
+                },
+                y: 0.95 // Bring title closer
+            },
+            xaxis: {
+                ...modernLayout.xaxis,
+                title: {
+                    text: 'Supplier Name',
+                    font: {
+                        size: 12
+                    },
+                    standoff: 15 // Add space between axis and title
+                },
+                tickmode: 'array',
+                tickvals: sortedSupplierNames,
+                ticktext: sortedSupplierNames.map(name => name.length > 15 ? name.substr(0, 12) + '...' : name)
+            },
+            yaxis: {
+                ...modernLayout.yaxis,
+                title: {
+                    text: 'Total Amount (₹)',
+                    font: {
+                        size: 12
+                    },
+                    standoff: 15
                 }
             }
         };
-
-        const layout = {
-            title: `Quantity vs Material (Unit: ${unit})`,
+    
+        Plotly.newPlot('supplierChart', [supplierTrace], supplierLayout);
+    
+        // Transporter Chart with improved labels
+        const transporterData = JSON.parse('{{ transporter_data|tojson|safe }}');
+        const transporterNames = transporterData.map(item => wrapLabel(item.transporter_name, 20));
+        const transporterAmounts = transporterData.map(item => item.total_amount);
+    
+        const sortedTransporterData = transporterNames.map((name, index) => ({
+            name,
+            amount: transporterAmounts[index],
+            fullName: transporterData[index].transporter_name
+        })).sort((a, b) => b.amount - a.amount);
+    
+        const sortedTransporterNames = sortedTransporterData.map(item => item.name);
+        const sortedTransporterAmounts = sortedTransporterData.map(item => item.amount);
+    
+        const transporterTrace = {
+            x: sortedTransporterNames,
+            y: sortedTransporterAmounts,
+            type: 'bar',
+            marker: {
+                color: '#00d2ff',
+                line: {
+                    color: '#00c2ef',
+                    width: 1
+                },
+                opacity: 0.8
+            },
+            customdata: sortedTransporterData.map(item => item.fullName),
+            hovertemplate: '<b>%{customdata}</b><br>Amount: ₹%{y:,.2f}<extra></extra>',
+            name: 'Amount'
+        };
+    
+        const transporterLayout = {
+            ...modernLayout,
+            title: {
+                text: 'Total Amount by Transporters',
+                font: {
+                    size: 16,
+                    color: '#333'
+                },
+                y: 0.95
+            },
             xaxis: {
-                title: 'Material',
-                tickangle: -45
+                ...modernLayout.xaxis,
+                title: {
+                    text: 'Transporter Name',
+                    font: {
+                        size: 12
+                    },
+                    standoff: 15
+                },
+                tickmode: 'array',
+                tickvals: sortedTransporterNames,
+                ticktext: sortedTransporterNames.map(name => name.length > 15 ? name.substr(0, 12) + '...' : name)
             },
             yaxis: {
-                title: `Total Quantity (${unit})`,
-                tickformat: ',.2f'
-            },
-            margin: { b: 100 }
+                ...modernLayout.yaxis,
+                title: {
+                    text: 'Total Amount (₹)',
+                    font: {
+                        size: 12
+                    },
+                    standoff: 15
+                }
+            }
         };
-
-        Plotly.newPlot('quantityChart', [trace], layout);
-    }
-
-    // Initial chart with first unit
-    const firstUnit = $('#unitSelector').val();
-    if (firstUnit) updateQuantityChart(firstUnit);
-
-    // Update chart on unit selection
-    $('#unitSelector').on('change', function() {
-        updateQuantityChart($(this).val());
-    });
-
-    // Amount vs Material Chart (Stacked Bar)
-    const amountMaterialData = JSON.parse('{{ amount_by_material_data|tojson|safe }}');
-    const materials = amountMaterialData.map(item => item.material);
-    const amountsWithoutGst = amountMaterialData.map(item => item.total_amount_without_gst);
-    const gstAmounts = amountMaterialData.map(item => item.total_gst_amount);
-    const totalAmounts = amountMaterialData.map(item => item.total_amount_with_gst);
-
-    // Sort by total amount (without GST + GST)
-    const sortedData = materials.map((material, index) => ({
-        material,
-        withoutGst: amountsWithoutGst[index],
-        gst: gstAmounts[index],
-        total: totalAmounts[index]
-    })).sort((a, b) => b.total - a.total);
-
-    const sortedMaterials = sortedData.map(item => item.material);
-    const sortedAmountsWithoutGst = sortedData.map(item => item.withoutGst);
-    const sortedGstAmounts = sortedData.map(item => item.gst);
-    const sortedTotalAmounts = sortedData.map(item => item.total);
-
-    const traceWithoutGst = {
-        x: sortedMaterials,
-        y: sortedAmountsWithoutGst,
-        name: 'Amount Without GST',
-        type: 'bar',
-        marker: {
-            color: 'rgba(55, 128, 191, 0.7)',
-            line: {
-                color: 'rgba(55, 128, 191, 1.0)',
-                width: 1
-            }
-        }
-    };
-
-    const traceGst = {
-        x: sortedMaterials,
-        y: sortedGstAmounts,
-        name: 'GST Amount',
-        type: 'bar',
-        marker: {
-            color: 'rgba(255, 99, 71, 0.7)',
-            line: {
-                color: 'rgba(255, 99, 71, 1.0)',
-                width: 1
-            }
-        },
-        text: sortedGstAmounts.map(amount => `GST Amount: ₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`),
-        textposition: 'none', // Disable text on the bar itself to avoid confusion with the total label
-        hovertemplate: `%{text}<extra></extra>` // Use custom hover template to control popup content
+    
+        Plotly.newPlot('transporterChart', [transporterTrace], transporterLayout);
+    
+        // Quantity vs Material Chart with improved labels
+        const quantityByUnitData = JSON.parse('{{ quantity_by_unit_data|tojson|safe }}');
+    
+        function updateQuantityChart(unit) {
+            const unitData = quantityByUnitData[unit] || [];
+            const materials = unitData.map(item => wrapLabel(item.material, 20));
+            const quantities = unitData.map(item => item.total_quantity);
+    
+            const sortedUnitData = materials.map((material, index) => ({
+                material,
+                quantity: quantities[index],
+                fullMaterial: unitData[index].material
+            })).sort((a, b) => b.quantity - a.quantity);
+    
+            const sortedMaterials = sortedUnitData.map(item => item.material);
+            const sortedQuantities = sortedUnitData.map(item => item.quantity);
+    
+            const trace = {
+                x: sortedMaterials,
+                y: sortedQuantities,
+                type: 'bar',
+                marker: {
+                    color: '#20e3b2',
+                    line: {
+                        color: '#10d3a2',
+                        width: 1
+                    },
+                    opacity: 0.8
+                },
+                customdata: sortedUnitData.map(item => item.fullMaterial),
+                hovertemplate: `<b>%{customdata}</b><br>Quantity: %{y:,.2f} ${unit}<extra></extra>`,
+                name: 'Quantity'
             };
-
-    const amountMaterialLayout = {
-        title: 'Amount vs Material (With GST Breakdown)',
-        barmode: 'stack',
-        xaxis: {
-            title: 'Material',
-            tickangle: -45
-        },
-        yaxis: {
-            title: 'Amount (₹)',
-            tickformat: ',.2f'
-        },
-        margin: { b: 100, t: 100 }, // Increased top margin for text labels
-        legend: {
-            x: 1,
-            y: 1,
-            bgcolor: 'rgba(255, 255, 255, 0.5)',
-            bordercolor: 'rgba(0, 0, 0, 0.1)'
-        },
-        annotations: sortedTotalAmounts.map((amount, index) => ({
-            x: sortedMaterials[index],
-            y: amount,
-            text: `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-            showarrow: false,
-            yshift: 10,
-            font: {
-                size: 12,
-                color: '#000000'
+    
+            const layout = {
+                ...modernLayout,
+                title: {
+                    text: `Quantity vs Material (Unit: ${unit})`,
+                    font: {
+                        size: 16,
+                        color: '#333'
+                    },
+                    y: 0.95
+                },
+                xaxis: {
+                    ...modernLayout.xaxis,
+                    title: {
+                        text: 'Material',
+                        font: {
+                            size: 12
+                        },
+                        standoff: 15
+                    },
+                    tickmode: 'array',
+                    tickvals: sortedMaterials,
+                    ticktext: sortedMaterials.map(mat => mat.length > 15 ? mat.substr(0, 12) + '...' : mat)
+                },
+                yaxis: {
+                    ...modernLayout.yaxis,
+                    title: {
+                        text: `Total Quantity (${unit})`,
+                        font: {
+                            size: 12
+                        },
+                        standoff: 15
+                    }
+                }
+            };
+    
+            Plotly.newPlot('quantityChart', [trace], layout);
+        }
+    
+        // Initial chart with first unit
+        const firstUnit = $('#unitSelector').val();
+        if (firstUnit) updateQuantityChart(firstUnit);
+    
+        // Update chart on unit selection
+        $('#unitSelector').on('change', function() {
+            updateQuantityChart($(this).val());
+        });
+    
+        // Amount vs Material Chart with improved labels
+        const amountMaterialData = JSON.parse('{{ amount_by_material_data|tojson|safe }}');
+        const materials = amountMaterialData.map(item => wrapLabel(item.material, 20));
+        const amountsWithoutGst = amountMaterialData.map(item => item.total_amount_without_gst);
+        const gstAmounts = amountMaterialData.map(item => item.total_gst_amount);
+        const totalAmounts = amountMaterialData.map(item => item.total_amount_with_gst);
+    
+        // Sort by total amount (without GST + GST)
+        const sortedData = materials.map((material, index) => ({
+            material,
+            withoutGst: amountsWithoutGst[index],
+            gst: gstAmounts[index],
+            total: totalAmounts[index],
+            fullMaterial: amountMaterialData[index].material
+        })).sort((a, b) => b.total - a.total);
+    
+        const sortedMaterials = sortedData.map(item => item.material);
+        const sortedAmountsWithoutGst = sortedData.map(item => item.withoutGst);
+        const sortedGstAmounts = sortedData.map(item => item.gst);
+        const sortedTotalAmounts = sortedData.map(item => item.total);
+    
+        const traceWithoutGst = {
+            x: sortedMaterials,
+            y: sortedAmountsWithoutGst,
+            name: 'Amount Without GST',
+            type: 'bar',
+            marker: {
+                color: '#3a7bd5',
+                line: {
+                    color: '#2a6bc4',
+                    width: 1
+                },
+                opacity: 0.8
+            },
+            customdata: sortedData.map(item => item.fullMaterial),
+            hovertemplate: '<b>%{customdata}</b><br>Without GST: ₹%{y:,.2f}<extra></extra>'
+        };
+    
+        const traceGst = {
+            x: sortedMaterials,
+            y: sortedGstAmounts,
+            name: 'GST Amount',
+            type: 'bar',
+            marker: {
+                color: '#00d2ff',
+                line: {
+                    color: '#00c2ef',
+                    width: 1
+                },
+                opacity: 0.8
+            },
+            customdata: sortedData.map(item => item.fullMaterial),
+            hovertemplate: '<b>%{customdata}</b><br>GST Amount: ₹%{y:,.2f}<extra></extra>'
+        };
+    
+        const amountMaterialLayout = {
+            ...modernLayout,
+            title: {
+                text: 'Amount vs Material (With GST Breakdown)',
+                font: {
+                    size: 16,
+                    color: '#333'
+                },
+                y: 0.95
+            },
+            barmode: 'stack',
+            xaxis: {
+                ...modernLayout.xaxis,
+                title: {
+                    text: 'Material',
+                    font: {
+                        size: 12
+                    },
+                    standoff: 15
+                },
+                tickmode: 'array',
+                tickvals: sortedMaterials,
+                ticktext: sortedMaterials.map(mat => mat.length > 15 ? mat.substr(0, 12) + '...' : mat)
+            },
+            yaxis: {
+                ...modernLayout.yaxis,
+                title: {
+                    text: 'Amount (₹)',
+                    font: {
+                        size: 12
+                    },
+                    standoff: 15
+                }
+            },
+            annotations: sortedTotalAmounts.map((amount, index) => ({
+                x: sortedMaterials[index],
+                y: amount,
+                text: `₹${amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                showarrow: false,
+                yshift: 10,
+                font: {
+                    size: 10, // Smaller font for annotations
+                    color: '#333'
+                },
+                bgcolor: 'rgba(255, 255, 255, 0.8)',
+                bordercolor: '#e0e0e0',
+                borderwidth: 1,
+                borderpad: 4,
+                opacity: 0.9
+            }))
+        };
+    
+        Plotly.newPlot('amountMaterialChart', [traceWithoutGst, traceGst], amountMaterialLayout);
+    
+        // Handle date filter form submission
+        $('#dateFilterForm').on('submit', function(e) {
+            e.preventDefault();
+            const fromDate = $('#fromDate').val();
+            const toDate = $('#toDate').val();
+            window.location.href = `{{ url_for('charts_dashboard') }}?from_date=${fromDate}&to_date=${toDate}`;
+        });
+    
+        // Make charts responsive with label adjustments
+        function handleResize() {
+            const width = window.innerWidth;
+            let tickFontSize = 10;
+            let tickAngle = -30;
+            
+            if (width < 768) {
+                tickFontSize = 8;
+                tickAngle = -45;
+            } else if (width < 992) {
+                tickFontSize = 9;
+                tickAngle = -40;
             }
-        }))
-    };
-
-    Plotly.newPlot('amountMaterialChart', [traceWithoutGst, traceGst], amountMaterialLayout);
-
-    // Handle date filter form submission
-    $('#dateFilterForm').on('submit', function(e) {
-        e.preventDefault();
-        const fromDate = $('#fromDate').val();
-        const toDate = $('#toDate').val();
-        window.location.href = `{{ url_for('charts_dashboard') }}?from_date=${fromDate}&to_date=${toDate}`;
+            
+            // Update all charts
+            Plotly.relayout('supplierChart', {
+                'xaxis.tickangle': tickAngle,
+                'xaxis.tickfont.size': tickFontSize
+            });
+            
+            Plotly.relayout('transporterChart', {
+                'xaxis.tickangle': tickAngle,
+                'xaxis.tickfont.size': tickFontSize
+            });
+            
+            Plotly.relayout('quantityChart', {
+                'xaxis.tickangle': tickAngle,
+                'xaxis.tickfont.size': tickFontSize
+            });
+            
+            Plotly.relayout('amountMaterialChart', {
+                'xaxis.tickangle': tickAngle,
+                'xaxis.tickfont.size': tickFontSize
+            });
+        }
+    
+        // Initial resize handling
+        handleResize();
+        
+        // Add resize event listener
+        window.addEventListener('resize', function() {
+            handleResize();
+            Plotly.Plots.resize('supplierChart');
+            Plotly.Plots.resize('transporterChart');
+            Plotly.Plots.resize('quantityChart');
+            Plotly.Plots.resize('amountMaterialChart');
+        });
     });
-});
 </script>
 {% endblock %}
