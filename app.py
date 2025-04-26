@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, timedelta  
 from config import Config
-from models import Invoice
+from models import Invoice, User
 from database import db, init_db
 from flask import send_file
 import pandas as pd
@@ -11,13 +11,27 @@ from io import BytesIO
 from flask import jsonify
 import math
 import re
+from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.secret_key = 'your_secret_key'  # Change this to a secure secret key
 
 # Initialize database
 init_db(app)
 migrate = Migrate(app, db)
+
+# Seed default admin if not present
+def seed_default_admin():
+    with app.app_context():
+        if not User.query.filter_by(user_id='ad000').first():
+            admin = User(name='Default Admin', user_id='ad000', role='admin')
+            admin.set_password('1234')
+            db.session.add(admin)
+            db.session.commit()
+
+# Don't call seed function here
+# seed_default_admin()
 
 # Material GST rates
 MATERIAL_RATES = {
@@ -52,13 +66,35 @@ def validate_vehicle_number(vehicle_no):
     pattern2 = re.compile(r'^[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{4}$')
     return bool(pattern1.match(vehicle_no)) or bool(pattern2.match(vehicle_no))
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please login to access this page.', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please login to access this page.', 'error')
+            return redirect(url_for('login'))
+        if session.get('role') != 'admin':
+            flash('You do not have permission to access this page.', 'error')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
+@login_required
 def home():
     return render_template('home.html')
 
 
 @app.route('/data-entry', methods=['GET', 'POST'])
+@login_required
 def index():
     if request.method == 'POST':
         try:
@@ -235,12 +271,14 @@ def get_filtered_invoices():
 
 
 @app.route('/invoices')
+@login_required
 def view_invoices():
     invoices = get_filtered_invoices()
     return render_template('invoices.html', invoices=invoices)
 
 
 @app.route('/export_invoices')
+@login_required
 def export_invoices():
     invoices = get_filtered_invoices()
     
@@ -343,6 +381,7 @@ def format_currency(value):
 
 
 @app.route('/charts')
+@admin_required
 def charts_dashboard():
     # Get date range from query parameters or database
     from_date_str = request.args.get('from_date')
@@ -487,6 +526,7 @@ def charts_dashboard():
     
 
 @app.route('/edit_invoice/<int:invoice_id>', methods=['GET'])
+@login_required
 def edit_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
     date_str = invoice.date.strftime('%d/%m/%Y')
@@ -498,6 +538,7 @@ def edit_invoice(invoice_id):
                          tcs_options=TCS_OPTIONS)
 
 @app.route('/update_invoice/<int:invoice_id>', methods=['POST'])
+@login_required
 def update_invoice(invoice_id):
     invoice = Invoice.query.get_or_404(invoice_id)
     
@@ -596,6 +637,7 @@ def update_invoice(invoice_id):
         return str(e), 400  # Error response
 
 @app.route('/delete_invoices', methods=['POST'])
+@login_required
 def delete_invoices():
     try:
         data = request.get_json()
@@ -614,6 +656,150 @@ def delete_invoices():
         db.session.rollback()
         return str(e), 400  # Error response
     
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        password = request.form['password']
+        user = User.query.filter_by(user_id=user_id).first()
+        if user and user.check_password(password):
+            session['user_id'] = user.user_id
+            session['role'] = user.role
+            session['user_page_access'] = user.user_page_access if user.role == 'admin' else False
+            flash('Login successful!', 'success')
+            return redirect(url_for('home'))
+        flash('Invalid UserID or Password', 'error')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
+
+@app.route('/users', methods=['GET', 'POST'])
+@admin_required
+def manage_users():
+    # Check if the admin has user_page_access
+    if not session.get('user_page_access'):
+        flash('You do not have permission to manage users.', 'error')
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        name = request.form['name']
+        user_id = request.form['user_id']
+        password = request.form['password']
+        role = request.form['role']
+        
+        if User.query.filter_by(user_id=user_id).first():
+            flash('UserID already exists.', 'error')
+            return redirect(url_for('manage_users'))
+        
+        new_user = User(name=name, user_id=user_id, role=role)
+        if role == 'admin':
+            new_user.user_page_access = request.form.get('user_page_access') == 'on'
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('User added successfully!', 'success')
+        return redirect(url_for('manage_users'))
     
+    admins = [user.to_dict() for user in User.query.filter_by(role='admin').all()]
+    employees = [user.to_dict() for user in User.query.filter_by(role='employee').all()]
+    return render_template('manage_users.html', admins=admins, employees=employees)
+
+@app.route('/create-default-admin')
+def create_default_admin():
+    # Check if default admin already exists
+    if User.query.filter_by(user_id='ad000').first():
+        flash('Default admin already exists.', 'error')
+        return redirect(url_for('login'))
+    
+    # Create default admin
+    admin = User(
+        name='Default Admin',
+        user_id='ad000',
+        role='admin',
+        user_page_access=True
+    )
+    admin.set_password('1234')
+    db.session.add(admin)
+    db.session.commit()
+    
+    flash('Default admin created successfully!', 'success')
+    return redirect(url_for('login'))
+
+@app.route('/api/user/<int:user_id>', methods=['GET'])
+@admin_required
+def get_user(user_id):
+    if not session.get('user_page_access'):
+        return jsonify({'error': 'Permission denied'}), 403
+    user = User.query.get_or_404(user_id)
+    user_data = user.to_dict()
+    
+    # Add user statistics
+    user_data['total_invoices'] = Invoice.query.filter_by(supplier_name=user.name).count()
+    last_invoice = Invoice.query.filter_by(supplier_name=user.name).order_by(Invoice.date.desc()).first()
+    user_data['last_invoice_date'] = last_invoice.date.strftime('%Y-%m-%d') if last_invoice else None
+    
+    return jsonify(user_data)
+
+@app.route('/api/user/<int:user_id>', methods=['PUT'])
+@admin_required
+def update_user(user_id):
+    if not session.get('user_page_access'):
+        return jsonify({'success': False, 'message': 'Permission denied'}), 403
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    
+    # Check if user_id is being changed and if it already exists
+    if 'user_id' in data and data['user_id'] != user.user_id:
+        existing_user = User.query.filter_by(user_id=data['user_id']).first()
+        if existing_user:
+            return jsonify({'success': False, 'message': 'UserID already exists'}), 400
+    
+    # Update user fields
+    if 'name' in data:
+        user.name = data['name']
+    if 'user_id' in data:
+        user.user_id = data['user_id']
+    if 'role' in data:
+        user.role = data['role']
+        if data['role'] == 'admin':
+            user.user_page_access = data.get('user_page_access', False)
+        else:
+            user.user_page_access = False
+    if 'password' in data and data['password']:
+        user.set_password(data['password'])
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/api/user/<int:user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(user_id):
+    if not session.get('user_page_access'):
+        return jsonify({'success': False, 'message': 'Permission denied'}), 403
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deleting the last admin with user_page_access
+    if user.role == 'admin' and user.user_page_access:
+        admins_with_access = User.query.filter_by(role='admin', user_page_access=True).count()
+        if admins_with_access <= 1:
+            return jsonify({'success': False, 'message': 'Cannot delete the last admin with user management access'}), 400
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
 if __name__ == '__main__':
     app.run(debug=True)

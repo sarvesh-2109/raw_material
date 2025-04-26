@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">User Management</h2>
+    
+    <div class="row">
+        <!-- Add User Form -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">Add User</h3>
+                    <form method="POST" action="{{ url_for('manage_users') }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">UserID</label>
+                            <input type="text" class="form-control" id="user_id" name="user_id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-select" id="role" name="role" required onchange="toggleAdminPermissions()">
+                                <option value="admin">Admin</option>
+                                <option value="employee">Employee</option>
+                            </select>
+                        </div>
+                        <div id="adminPermissions" style="display: none;">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="user_page_access" name="user_page_access">
+                                    <label class="form-check-label" for="user_page_access">
+                                        User Page Access
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add User</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Users -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">View Users</h3>
+                    <div class="mb-3">
+                        <button class="btn btn-outline-primary me-2" onclick="showUsers('admin')">View Admins</button>
+                        <button class="btn btn-outline-secondary" onclick="showUsers('employee')">View Employees</button>
+                    </div>
+                    <div id="userList">
+                        <!-- User cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userDetailsModalLabel">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <p><strong>Name:</strong> <span id="modalUserName"></span></p>
+                        <p><strong>UserID:</strong> <span id="modalUserID"></span></p>
+                        <p><strong>Role:</strong> <span id="modalUserRole"></span></p>
+                        <p><strong>Created At:</strong> <span id="modalUserCreatedAt"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>User Reports</h6>
+                        <p><strong>Total Invoices Created:</strong> <span id="modalUserInvoices"></span></p>
+                        <p><strong>Last Invoice Date:</strong> <span id="modalUserLastInvoice"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editUser()">Edit</button>
+                <button type="button" class="btn btn-danger" onclick="deleteUser()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="editName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserID" class="form-label">UserID</label>
+                        <input type="text" class="form-control" id="editUserID" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="editPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label">Role</label>
+                        <select class="form-select" id="editRole" required onchange="toggleEditAdminPermissions()">
+                            <option value="admin">Admin</option>
+                            <option value="employee">Employee</option>
+                        </select>
+                    </div>
+                    <div id="editAdminPermissions" style="display: none;">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editUserPageAccess">
+                                <label class="form-check-label" for="editUserPageAccess">
+                                    User Page Access
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveUserChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    let currentUser = null;
+
+    // Add password toggle functionality
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+
+    function showUsers(role) {
+        const userList = document.getElementById('userList');
+        userList.innerHTML = '';
+        
+        const users = role === 'admin' ? {{ admins|tojson|safe }} : {{ employees|tojson|safe }};
+        
+        users.forEach(user => {
+            const card = document.createElement('div');
+            card.className = 'card mb-2';
+            card.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${user.name}</h5>
+                    <p class="card-text">UserID: ${user.user_id}</p>
+                    <p class="card-text">Role: ${user.role}</p>
+                    <button class="btn btn-info me-2" onclick="showUserDetails(${user.id})">View Details</button>
+                    <button class="btn btn-warning me-2" onclick="editUser(${user.id})">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteUser(${user.id})">Delete</button>
+                </div>
+            `;
+            userList.appendChild(card);
+        });
+    }
+    
+    function showUserDetails(userId) {
+        fetch(`/api/user/${userId}`)
+            .then(response => response.json())
+            .then(user => {
+                currentUser = user;
+                document.getElementById('modalUserName').textContent = user.name;
+                document.getElementById('modalUserID').textContent = user.user_id;
+                document.getElementById('modalUserRole').textContent = user.role;
+                document.getElementById('modalUserCreatedAt').textContent = user.created_at;
+                document.getElementById('modalUserInvoices').textContent = user.total_invoices || 0;
+                document.getElementById('modalUserLastInvoice').textContent = user.last_invoice_date || 'Never';
+                new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
+            });
+    }
+    
+    function toggleAdminPermissions() {
+        const roleSelect = document.getElementById('role');
+        const adminPermissions = document.getElementById('adminPermissions');
+        adminPermissions.style.display = roleSelect.value === 'admin' ? 'block' : 'none';
+    }
+
+    function toggleEditAdminPermissions() {
+        const roleSelect = document.getElementById('editRole');
+        const adminPermissions = document.getElementById('editAdminPermissions');
+        adminPermissions.style.display = roleSelect.value === 'admin' ? 'block' : 'none';
+    }
+    
+    function editUser(userId) {
+        if (userId) {
+            fetch(`/api/user/${userId}`)
+                .then(response => response.json())
+                .then(user => {
+                    currentUser = user;
+                    document.getElementById('editUserId').value = user.id;
+                    document.getElementById('editName').value = user.name;
+                    document.getElementById('editUserID').value = user.user_id;
+                    document.getElementById('editRole').value = user.role;
+                    document.getElementById('editUserPageAccess').checked = user.user_page_access;
+                    toggleEditAdminPermissions();
+                    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+                });
+        } else {
+            new bootstrap.Modal(document.getElementById('editUserModal')).show();
+        }
+    }
+    
+    function saveUserChanges() {
+        const userId = document.getElementById('editUserId').value;
+        const data = {
+            name: document.getElementById('editName').value,
+            user_id: document.getElementById('editUserID').value,
+            role: document.getElementById('editRole').value
+        };
+        
+        if (data.role === 'admin') {
+            data.user_page_access = document.getElementById('editUserPageAccess').checked;
+        }
+        
+        const password = document.getElementById('editPassword').value;
+        if (password) {
+            data.password = password;
+        }
+        
+        fetch(`/api/user/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                location.reload();
+            } else {
+                alert(result.message || 'Error updating user');
+            }
+        });
+    }
+    
+    function deleteUser(userId) {
+        if (confirm('Are you sure you want to delete this user?')) {
+            fetch(`/api/user/${userId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert(result.message || 'Error deleting user');
+                }
+            });
+        }
+    }
+</script>
+{% endblock %} 

@@ -1,8 +1,39 @@
 from datetime import datetime
 from pytz import timezone
 from database import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 IST = timezone('Asia/Kolkata')
+
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), nullable=False)  # 'admin' or 'employee'
+    user_page_access = db.Column(db.Boolean, default=False)  # Permission to manage users
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(IST))
+    
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'user_id': self.user_id,
+            'role': self.role,
+            'user_page_access': self.user_page_access,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+    
+    def __repr__(self):
+        return f'<User {self.user_id}>'
 
 class Invoice(db.Model):
     __tablename__ = 'invoices'
