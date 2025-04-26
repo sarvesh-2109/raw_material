@@ -52,7 +52,13 @@ def validate_vehicle_number(vehicle_no):
     pattern2 = re.compile(r'^[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{4}$')
     return bool(pattern1.match(vehicle_no)) or bool(pattern2.match(vehicle_no))
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+
+@app.route('/data-entry', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         try:
