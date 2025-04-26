@@ -12,23 +12,35 @@ from flask import jsonify
 import math
 import re
 from functools import wraps
+from werkzeug.middleware.proxy_fix import ProxyFix
+from sqlalchemy import inspect
 
 app = Flask(__name__)
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
+
+
+# Force HTTPS
+@app.before_request
+def force_https():
+    if not request.is_secure and request.headers.get('X-Forwarded-Proto', 'http') == 'http':
+        return redirect(request.url.replace('http://', 'https://', 1), code=301)
+    
+
 app.config.from_object(Config)
-app.secret_key = 'your_secret_key'  # Change this to a secure secret key
 
 # Initialize database
 init_db(app)
 migrate = Migrate(app, db)
 
 # Seed default admin if not present
-def seed_default_admin():
-    with app.app_context():
-        if not User.query.filter_by(user_id='ad000').first():
-            admin = User(name='Default Admin', user_id='ad000', role='admin')
-            admin.set_password('1234')
-            db.session.add(admin)
-            db.session.commit()
+# def seed_default_admin():
+#     with app.app_context():
+#         if not User.query.filter_by(user_id='ad000').first():
+#             admin = User(name='Default Admin', user_id='ad000', role='admin')
+#             admin.set_password('1234')
+#             db.session.add(admin)
+#             db.session.commit()
 
 # Don't call seed function here
 # seed_default_admin()
@@ -801,5 +813,9 @@ def delete_user(user_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400
 
-if __name__ == '__main__':
-    app.run(debug=True)
+with app.app_context():
+    if not inspect(db.engine).get_table_names():  # Check if there are any tables
+        db.create_all()
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
