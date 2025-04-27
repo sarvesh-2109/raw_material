@@ -12,3 +12,5 @@ WTForms
 pandas
 xlsxwriter
 plotly
+Werkzeug
+gunicorn

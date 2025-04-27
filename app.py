@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, timedelta  
@@ -8,7 +8,6 @@ from database import db, init_db
 from flask import send_file
 import pandas as pd
 from io import BytesIO
-from flask import jsonify
 import math
 import re
 from functools import wraps
